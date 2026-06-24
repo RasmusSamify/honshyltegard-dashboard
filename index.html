@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hönshyltegård · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F0E8; --surface:#FDFAF4; --surface-2:#F8F3EA; --surface-3:#F0EAE0;
+  --green:#3D5A3E; --green-mid:#5A7D5B; --green-lt:#A8C5A0; --green-xs:#E8F0E4;
+  --brown:#5C3D1E; --brown-lt:#8B6A44; --accent:#B8832A;
+  --text:#221A0F; --text-muted:#7A6A55; --text-faint:#B0A698;
+  --border:#DFD5C2; --border-lt:#EBE3D0;
+  --error:#C0392B; --warn:#D68910; --success:#4A7C4D; --info:#4A7094;
+  --radius:12px; --radius-lg:16px;
+  --shadow-sm:0 1px 2px rgba(34,26,15,0.05); --shadow:0 4px 20px rgba(34,26,15,0.06); --shadow-lg:0 12px 40px rgba(34,26,15,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Jost', -apple-system, sans-serif; font-size: 14px; line-height: 1.5;
+  color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select, textarea { font-family: inherit; font-size: 14px; color: var(--text); }
+a { color: var(--green); text-decoration: none; }
+
+/* Lucide icons */
+.icon { width: 18px; height: 18px; stroke-width: 1.75; flex-shrink: 0; }
+.icon-sm { width: 14px; height: 14px; stroke-width: 2; }
+.icon-lg { width: 22px; height: 22px; }
+
+/* ── LOGIN SCREEN ───────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--bg), var(--surface-3));
+  padding: 24px;
+}
+#login-screen.hidden { display: none; }
+.login-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); padding: 44px 40px; width: 100%; max-width: 420px;
+}
+.login-brand { text-align: center; margin-bottom: 32px; }
+.login-brand-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green-mid); font-weight: 500; margin-bottom: 8px; }
+.login-brand-alpaca { font-size: 46px; line-height: 1; margin: 8px 0 14px; display: block; filter: drop-shadow(0 4px 8px rgba(34,26,15,0.1)); animation: alpacka-bob 3.5s ease-in-out infinite; }
+@keyframes alpacka-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.login-brand h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: var(--brown); line-height: 1.1; }
+.login-brand h1 em { color: var(--green); font-style: italic; }
+.login-form { display: flex; flex-direction: column; gap: 16px; }
+.login-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.login-field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface-2); outline: none; transition: border-color 0.15s, background 0.15s; }
+.login-field input:focus { border-color: var(--green); background: var(--surface); }
+.login-field input.error { border-color: var(--error); }
+.login-submit { background: var(--green); color: #fff; padding: 12px; border-radius: 10px; font-weight: 500; letter-spacing: 0.02em; margin-top: 8px; transition: background 0.15s; }
+.login-submit:hover { background: #304830; }
+.login-submit:disabled { opacity: 0.6; cursor: default; }
+.login-secondary { font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 16px; }
+.login-secondary button { color: var(--green); font-weight: 500; text-decoration: underline; }
+.login-message { font-size: 13px; padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; line-height: 1.5; }
+.login-message.error { background: #FEF0EE; border: 1px solid #F5C6C2; color: var(--error); }
+.login-message.info { background: #EAF3FA; border: 1px solid #BAD5E8; color: var(--info); }
+.login-message.success { background: #EBF5EC; border: 1px solid #BCD7C0; color: var(--success); }
+
+/* ── APP SHELL ──────────────────────────────────────────── */
+#app { display: flex; min-height: 100vh; }
+#app.hidden { display: none; }
+
+.sidebar {
+  width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0;
+  position: sticky; top: 0; height: 100vh;
+}
+.sidebar-brand { padding: 4px 12px 28px; border-bottom: 1px solid var(--border-lt); margin-bottom: 16px; text-align: left; }
+.sidebar-brand-eyebrow { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--green-mid); font-weight: 500; margin-bottom: 4px; }
+.sidebar-brand-alpaca { font-size: 26px; line-height: 1; margin: 6px 0 8px; display: block; filter: drop-shadow(0 2px 4px rgba(34,26,15,0.08)); }
+.sidebar-brand h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--brown); line-height: 1.1; }
+.sidebar-brand h2 em { color: var(--green); font-style: italic; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--text-muted); font-weight: 500; font-size: 14px; transition: all 0.15s; text-align: left; width: 100%; }
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--green-xs); color: var(--green); }
+.nav-item.active .icon { color: var(--green); }
+.nav-badge { margin-left: auto; font-size: 11px; font-weight: 600; background: var(--green); color: #fff; padding: 1px 7px; border-radius: 100px; }
+.nav-badge.warn { background: var(--warn); }
+
+.sidebar-user { padding: 12px; border-top: 1px solid var(--border-lt); margin-top: 16px; display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; letter-spacing: 0.02em; flex-shrink: 0; }
+.user-meta { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-email { font-size: 11px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-logout { color: var(--text-muted); padding: 6px; border-radius: 6px; }
+.user-logout:hover { background: var(--surface-3); color: var(--text); }
+
+main { flex: 1; padding: 40px 48px 80px; max-width: 100%; overflow-x: hidden; }
+.view { display: none; animation: fadeUp 0.35s ease; }
+.view.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.view-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; gap: 24px; flex-wrap: wrap; }
+.view-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: var(--brown); line-height: 1.1; margin-bottom: 4px; }
+.view-subtitle { color: var(--text-muted); font-size: 14px; }
+.view-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: #304830; }
+.btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { background: var(--surface-3); }
+.btn-ghost { color: var(--text-muted); }
+.btn-ghost:hover { background: var(--surface-3); color: var(--text); }
+.btn-danger { background: #FDF0EE; border: 1px solid #F5C6C2; color: var(--error); }
+.btn-danger:hover { background: var(--error); color: #fff; border-color: var(--error); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn-icon { padding: 9px; }
+
+/* ── OVERVIEW ───────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+@media (max-width: 960px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 20px 22px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kpi-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--green); }
+.kpi-card.accent::before { background: var(--accent); }
+.kpi-card.brown::before { background: var(--brown-lt); }
+.kpi-card.info::before { background: var(--info); }
+.kpi-label { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+.kpi-label .icon { color: var(--text-muted); }
+.kpi-value { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 600; color: var(--brown); line-height: 1.05; margin-bottom: 6px; }
+.kpi-delta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.kpi-delta.up { color: var(--success); }
+.kpi-delta.down { color: var(--error); }
+.kpi-delta.flat { color: var(--text-muted); }
+
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--brown); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.section-title .icon { color: var(--green); }
+
+.panels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 28px; }
+@media (max-width: 960px) { .panels-grid { grid-template-columns: 1fr; } }
+.panels-grid.triple { grid-template-columns: 2fr 1fr; }
+@media (max-width: 960px) { .panels-grid.triple { grid-template-columns: 1fr; } }
+
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow-sm); }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.panel-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.panel-title .icon { color: var(--green); }
+.panel-hint { font-size: 12px; color: var(--text-faint); }
+.chart-wrap { position: relative; height: 260px; }
+.chart-wrap.tall { height: 300px; }
+.chart-wrap.short { height: 180px; }
+
+.list { display: flex; flex-direction: column; gap: 0; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-lt); }
+.list-item:last-child { border-bottom: none; }
+.list-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-xs); color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0; }
+.list-info { flex: 1; min-width: 0; }
+.list-name { font-weight: 500; font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.list-right { font-size: 12px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+.empty { color: var(--text-faint); font-size: 13px; text-align: center; padding: 32px 16px; font-style: italic; }
+
+.schedule-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border-lt); }
+.schedule-item:last-child { border-bottom: none; }
+.schedule-time { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 600; color: var(--brown); width: 58px; flex-shrink: 0; }
+.schedule-body { flex: 1; min-width: 0; }
+.schedule-name { font-size: 14px; color: var(--text); font-weight: 500; }
+.schedule-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.schedule-bar { height: 4px; background: var(--border-lt); border-radius: 100px; overflow: hidden; margin-top: 8px; }
+.schedule-bar-fill { height: 100%; background: var(--green); border-radius: 100px; transition: width 0.3s; }
+.schedule-bar-fill.full { background: var(--warn); }
+
+.alert-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.alert-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; }
+.alert-card.info { border-left-color: var(--info); }
+.alert-card.ok { border-left-color: var(--success); }
+.alert-card .icon { color: var(--warn); margin-top: 2px; }
+.alert-card.info .icon { color: var(--info); }
+.alert-card.ok .icon { color: var(--success); }
+.alert-body { flex: 1; min-width: 0; }
+.alert-title { font-weight: 500; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.alert-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.alert-card a { font-weight: 500; }
+
+.weather-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.weather-card { flex: 1; min-width: 56px; background: var(--surface-2); border: 1px solid var(--border-lt); border-radius: 10px; padding: 10px 6px; text-align: center; }
+.weather-card.today { border-color: var(--green); background: var(--green-xs); }
+.w-date { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.w-icon { font-size: 20px; margin-bottom: 4px; }
+.w-temp { font-size: 11px; font-weight: 600; color: var(--text); }
+.w-rain { font-size: 10px; color: var(--info); margin-top: 2px; }
+
+/* ── BOOKINGS ───────────────────────────────────────────── */
+.toolbar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.search { position: relative; flex: 1; min-width: 220px; }
+.search input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); outline: none; }
+.search input:focus { border-color: var(--green); background: var(--surface); }
+.search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.filter-pill { padding: 6px 12px; border: 1px solid var(--border); border-radius: 100px; background: var(--surface); font-size: 12px; color: var(--text-muted); font-weight: 500; transition: all 0.15s; }
+.filter-pill:hover { background: var(--surface-3); }
+.filter-pill.active { background: var(--green); color: #fff; border-color: var(--green); }
+
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th { background: var(--surface-2); text-align: left; padding: 12px 14px; font-weight: 600; color: var(--text-muted); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+table.data td { padding: 14px; border-bottom: 1px solid var(--border-lt); vertical-align: middle; }
+table.data tr:last-child td { border-bottom: none; }
+table.data tr:hover td { background: var(--surface-2); cursor: pointer; }
+.td-main { font-weight: 500; color: var(--text); }
+.td-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+.badge.paid { background: #E6F4EA; color: var(--success); }
+.badge.pending { background: #FFF7E2; color: var(--warn); }
+.badge.confirmed { background: #E6F4EA; color: var(--success); }
+.badge.cancelled { background: #FDECEA; color: var(--error); }
+.badge.completed { background: #EAF0F4; color: var(--info); }
+.badge.no_show { background: var(--surface-3); color: var(--text-muted); }
+.badge.pending_payment { background: #FFF7E2; color: var(--warn); }
+
+/* Booking drawer */
+.drawer-backdrop { position: fixed; inset: 0; background: rgba(34,26,15,0.3); backdrop-filter: blur(2px); z-index: 80; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; top: 0; right: 0; width: 420px; max-width: 100vw; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg); z-index: 81; transform: translateX(100%); transition: transform 0.25s; display: flex; flex-direction: column; }
+.drawer.open { transform: translateX(0); }
+.drawer-header { padding: 20px 24px; border-bottom: 1px solid var(--border-lt); display: flex; align-items: center; gap: 12px; }
+.drawer-title { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--brown); line-height: 1.1; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.drawer-section { margin-bottom: 22px; }
+.drawer-section h4 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+.drawer-field { display: grid; grid-template-columns: 120px 1fr; padding: 7px 0; border-bottom: 1px solid var(--border-lt); font-size: 13px; gap: 10px; }
+.drawer-field:last-child { border-bottom: none; }
+.drawer-field-label { color: var(--text-muted); }
+.drawer-field-value { color: var(--text); font-weight: 500; word-break: break-word; }
+.drawer-actions { padding: 16px 24px; border-top: 1px solid var(--border-lt); display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface-2); }
+.email-gen { background: var(--surface-2); border: 1px solid var(--border-lt); border-radius: 10px; padding: 14px 16px; }
+.email-gen-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.email-lang-pills { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border-lt); border-radius: 100px; padding: 3px; }
+.email-lang-pill { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 100px; cursor: pointer; color: var(--text-muted); border: none; background: none; transition: all 0.15s; }
+.email-lang-pill:hover { color: var(--green); }
+.email-lang-pill.active { background: var(--green); color: #fff; }
+.email-gen textarea { width: 100%; min-height: 220px; margin-top: 12px; padding: 12px; border: 1px solid var(--border-lt); border-radius: 8px; font-family: inherit; font-size: 13px; line-height: 1.6; background: var(--surface); color: var(--text); resize: vertical; box-sizing: border-box; }
+.email-gen-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+.email-gen-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.email-gen-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--green); font-weight: 500; padding: 4px 10px; background: var(--green-xs); border-radius: 100px; margin-left: 4px; }
+.email-gen-status svg { width: 12px; height: 12px; }
+.confirm-check-wrap { display: inline-flex; align-items: center; vertical-align: middle; margin-left: 4px; }
+.confirm-check { width: 12px; height: 12px; color: var(--green); }
+.subscriber-list { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-lt); max-height: 360px; overflow-y: auto; }
+.subscriber-list:empty { display: none; }
+.subscriber-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid var(--border-lt); font-size: 13px; }
+.subscriber-row:last-child { border-bottom: none; }
+.subscriber-info { flex: 1; min-width: 0; }
+.subscriber-name { color: var(--text); font-weight: 500; }
+.subscriber-email { color: var(--text-muted); font-size: 12px; word-break: break-all; }
+.subscriber-unsubscribe { background: none; border: 1px solid var(--border-lt); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+.subscriber-unsubscribe:hover { background: var(--error); color: #fff; border-color: var(--error); }
+.subscriber-unsubscribe:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── MODAL (Ny manuell bokning) ─────────────────────────── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(34,26,15,0.4); backdrop-filter: blur(3px); z-index: 90; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 580px; width: 100%; display: flex; flex-direction: column; animation: modalIn 0.2s ease; max-height: calc(100vh - 80px); }
+@keyframes modalIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-lt); display: flex; align-items: center; gap: 12px; }
+.modal-title { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: var(--brown); line-height: 1.1; }
+.modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.modal-actions { padding: 14px 24px; border-top: 1px solid var(--border-lt); display: flex; gap: 8px; justify-content: flex-end; background: var(--surface-2); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+
+.mb-section { margin-bottom: 18px; }
+.mb-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+
+.mb-tabs { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border-lt); border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+.mb-tab { font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: 8px; color: var(--text-muted); transition: all 0.15s; cursor: pointer; }
+.mb-tab:hover { color: var(--text); }
+.mb-tab.active { background: var(--surface); color: var(--green); box-shadow: var(--shadow-sm); }
+
+.mb-mode-panel { display: none; }
+.mb-mode-panel.active { display: block; }
+
+.mb-cal-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 10px; }
+.mb-cal-month { font-size: 13px; font-weight: 600; color: var(--brown); font-family: 'Cormorant Garamond', serif; font-size: 17px; }
+.mb-cal-nav { display: flex; gap: 4px; }
+.mb-cal-nav button { padding: 5px 8px; border-radius: 6px; color: var(--text-muted); transition: all 0.15s; }
+.mb-cal-nav button:hover { background: var(--surface-3); color: var(--text); }
+
+.hour-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.hour-pill { padding: 9px 0; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: 13px; font-weight: 500; color: var(--text); transition: all 0.15s; cursor: pointer; user-select: none; font-variant-numeric: tabular-nums; }
+.hour-pill:hover:not(.disabled) { border-color: var(--green-lt); }
+.hour-pill.active { background: var(--green); color: #fff; border-color: var(--green); }
+.hour-pill.has-slot { border-color: var(--green-lt); background: var(--green-xs); color: var(--green); }
+.hour-pill.has-slot.active { background: var(--green); color: #fff; }
+.hour-pill.disabled { opacity: 0.4; cursor: not-allowed; }
+
+.mb-hour-hint { font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mb-hour-hint .swatch { display: inline-flex; align-items: center; gap: 5px; }
+.mb-hour-hint .swatch::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid var(--green-lt); background: var(--green-xs); }
+.mb-hour-hint .swatch.dot::before { background: var(--surface-2); border-color: var(--border); }
+
+.mb-slot-select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); outline: none; }
+
+.mb-checkbox { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border-lt); border-radius: 10px; cursor: pointer; }
+.mb-checkbox input { margin-top: 2px; accent-color: var(--green); width: 16px; height: 16px; }
+.mb-checkbox-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.mb-checkbox-text small { display: block; color: var(--text-muted); margin-top: 2px; font-size: 11px; }
+
+.mb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mb-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+@media (max-width: 540px) { .mb-grid-3 { grid-template-columns: 1fr 1fr; } }
+
+.mb-time-summary { font-size: 12px; color: var(--green); background: var(--green-xs); border: 1px solid var(--green-lt); border-radius: 8px; padding: 8px 12px; margin-top: 10px; display: none; }
+.mb-time-summary.show { display: block; }
+
+/* Source badge i bokningstabellen */
+.source-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 100px; background: var(--brown-lt); color: #fff; margin-left: 6px; text-transform: uppercase; vertical-align: 1px; }
+
+/* ── SLOTS ──────────────────────────────────────────────── */
+.slot-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 20px; }
+.slot-template-row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-lt); }
+.slot-template-row .form-field { flex: 1; min-width: 200px; margin: 0; }
+.weekday-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.weekday-pill { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 100px; background: var(--surface-2); font-size: 12px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; user-select: none; cursor: pointer; }
+.weekday-pill:hover { border-color: var(--green-lt); }
+.weekday-pill.active { background: var(--green); color: #fff; border-color: var(--green); }
+.weekday-quick { font-size: 11px; color: var(--green); background: none; padding: 4px 8px; margin-left: 4px; cursor: pointer; font-weight: 500; }
+.weekday-quick:hover { text-decoration: underline; }
+.slot-preview { margin-top: 14px; padding: 12px 14px; background: var(--surface-2); border-radius: 8px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.slot-preview strong { color: var(--brown); font-weight: 600; }
+.slot-preview.warn { background: #FFF7E2; color: #8a6d1f; border: 1px solid #F5D79B; }
+.slot-day-copy-btn { font-size: 12px; color: var(--green); padding: 4px 10px; border: 1px dashed var(--green-lt); border-radius: 6px; background: none; margin-left: auto; cursor: pointer; }
+.slot-day-copy-btn:hover { background: var(--green-xs); }
+.slot-day-toolbar { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-lt); margin-bottom: 6px; flex-wrap: wrap; }
+.slot-select-all { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none; }
+.slot-select-all input { width: 14px; height: 14px; cursor: pointer; accent-color: var(--green); }
+.slot-row-check { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); margin-right: 4px; }
+.slot-row-check:disabled { cursor: not-allowed; opacity: 0.4; }
+.schedule-item.is-selected { background: var(--green-xs); border-radius: 8px; padding-left: 8px !important; padding-right: 8px !important; margin: 0 -8px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.form-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); outline: none; transition: border-color 0.15s; }
+.form-field input:focus, .form-field select:focus { border-color: var(--green); background: var(--surface); }
+.slot-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--surface-2); border: 1px solid var(--border-lt); border-radius: 10px; padding: 10px; }
+.sc-label { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; color: var(--text-muted); text-transform: uppercase; padding: 4px 0; }
+.sc-day { aspect-ratio: 1; background: var(--surface); border-radius: 6px; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s; user-select: none; position: relative; }
+.sc-day.empty { background: transparent; cursor: default; }
+.sc-day.past { color: var(--text-faint); }
+.sc-day.selected { background: var(--green); color: #fff; font-weight: 600; }
+.sc-day.has-slots::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--green-lt); }
+.sc-day.selected.has-slots::after { background: #fff; }
+.sc-day:hover:not(.empty):not(.past) { background: var(--green-xs); }
+.sc-day.selected:hover { background: #304830; }
+
+.slot-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--surface-3); border: 1px solid var(--border-lt); border-radius: 100px; font-size: 12px; margin: 2px; }
+.slot-chip.full { opacity: 0.6; }
+.slot-chip button { color: var(--text-muted); padding: 0; line-height: 1; }
+.slot-chip button:hover { color: var(--error); }
+
+/* ── SETTINGS ───────────────────────────────────────────── */
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px 28px; margin-bottom: 18px; max-width: 680px; }
+.settings-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--brown); margin-bottom: 16px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-lt); gap: 16px; }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; color: var(--text-muted); }
+.settings-value { font-size: 14px; color: var(--text); font-weight: 500; }
+
+/* Toast */
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 120; }
+.toast { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--info); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow-lg); font-size: 13px; color: var(--text); min-width: 240px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.25s ease; }
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--error); }
+.toast .icon { flex-shrink: 0; }
+@keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Misc */
+.spinner { width: 28px; height: 28px; border: 2.5px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.9s linear infinite; }
+.spinner-sm { width: 14px; height: 14px; border-width: 2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-center { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 16px; color: var(--text-muted); font-size: 13px; }
+
+@media (max-width: 820px) {
+  .sidebar { position: fixed; top: 0; left: 0; transform: translateX(-100%); z-index: 60; transition: transform 0.2s; width: 260px; }
+  .sidebar.open { transform: translateX(0); }
+  main { padding: 24px 20px 60px; }
+  .view-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN SCREEN ─────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-eyebrow">Hönshyltegård</div>
+      <span class="login-brand-alpaca" aria-hidden="true">🦙</span>
+      <h1>Admin <em>dashboard</em></h1>
+    </div>
+    <div id="login-message" style="display:none"></div>
+    <form class="login-form" id="login-form">
+      <div class="login-field">
+        <label for="login-email">E-post</label>
+        <input type="email" id="login-email" autocomplete="email" required>
+      </div>
+      <div class="login-field" id="login-pw-field">
+        <label for="login-password">Lösenord</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-submit" id="login-submit">Logga in</button>
+    </form>
+    <div class="login-secondary">
+      <button type="button" id="login-forgot">Glömt lösenord?</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── APP ──────────────────────────────────────────────── -->
+<div id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-eyebrow">Hönshyltegård</div>
+      <span class="sidebar-brand-alpaca" aria-hidden="true">🦙</span>
+      <h2>Admin <em>panel</em></h2>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="overview">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Översikt
+      </button>
+      <button class="nav-item" data-view="bookings">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 2v4M8 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
+        Bokningar
+        <span class="nav-badge" id="nav-bookings-badge" style="display:none"></span>
+      </button>
+      <button class="nav-item" data-view="slots">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Tider
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Inställningar
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">—</div>
+        <div class="user-email" id="user-email">—</div>
+      </div>
+      <button class="user-logout btn-icon" id="user-logout-btn" title="Logga ut">
+        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- ÖVERSIKT -->
+    <section class="view active" id="view-overview">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Översikt</h1>
+          <div class="view-subtitle" id="overview-subtitle">Laddar data…</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-secondary" id="refresh-btn">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Uppdatera
+          </button>
+        </div>
+      </div>
+
+      <div class="alert-strip" id="alert-strip"></div>
+
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="loading-center" style="grid-column:1/-1"><div class="spinner"></div>Hämtar statistik…</div>
+      </div>
+
+      <div class="panels-grid triple">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Bokningar över tid
+            </div>
+            <select id="trend-range" class="filter-pill" style="padding:5px 10px">
+              <option value="30">30 dagar</option>
+              <option value="90" selected>90 dagar</option>
+              <option value="365">12 månader</option>
+            </select>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-bookings"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>
+              Tjänstfördelning
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-services"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panels-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Intäkter per vecka
+            </div>
+            <span class="panel-hint">Senaste 12 veckorna · betalda bokningar</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Populära veckodagar
+            </div>
+            <span class="panel-hint">Snittbokningar per dag</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-weekday"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panels-grid triple" style="margin-top:28px">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+              Idag · <span id="today-date" style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;font-size:13px"></span>
+            </div>
+          </div>
+          <div id="today-schedule"><div class="empty">Inga tider schemalagda idag</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><polyline points="8 16 12 12 16 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>
+              Väder 10 dagar
+            </div>
+            <span class="panel-hint" id="weather-warn-label" style="display:none;color:var(--warn)">⚡ Extremt väder</span>
+          </div>
+          <div class="weather-row" id="weather-row"><div class="empty">Laddar…</div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:28px">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Kommande bokningar
+          </div>
+        </div>
+        <div id="upcoming-list"><div class="empty">Inga kommande bokningar</div></div>
+      </div>
+    </section>
+
+    <!-- BOKNINGAR -->
+    <section class="view" id="view-bookings">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Bokningar</h1>
+          <div class="view-subtitle" id="bookings-subtitle">—</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-primary" id="new-booking-btn">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Lägg till bokning
+          </button>
+          <button class="btn btn-secondary" id="sync-payments-btn">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/><polyline points="21 3 21 9 15 9"/></svg>
+            Synka betalningar
+          </button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search">
+          <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="booking-search" type="text" placeholder="Sök på namn, e-post eller boknings-id…">
+        </div>
+        <button class="filter-pill active" data-filter="all">Alla</button>
+        <button class="filter-pill" data-filter="confirmed">Bekräftade</button>
+        <button class="filter-pill" data-filter="pending_payment">Väntar betalning</button>
+        <button class="filter-pill" data-filter="cancelled">Avbokade</button>
+        <button class="filter-pill" data-filter="completed">Genomförda</button>
+        <button class="filter-pill" data-filter="__manual">Manuella</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="bookings-table">
+          <thead><tr>
+            <th>Bokning</th>
+            <th>Kund</th>
+            <th>Tjänst</th>
+            <th>När</th>
+            <th>Personer</th>
+            <th>Pris</th>
+            <th>Status</th>
+          </tr></thead>
+          <tbody id="bookings-body"><tr><td colspan="7" class="empty">Laddar…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TIDER -->
+    <section class="view" id="view-slots">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Tider</h1>
+          <div class="view-subtitle">Hantera bokningsbara tidsluckor</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-danger" id="clear-all-slots-btn">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Rensa alla framtida
+          </button>
+        </div>
+      </div>
+      <div class="slot-form">
+        <div class="section-title" style="margin-bottom:16px">
+          <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Skapa nya tidsluckor
+        </div>
+
+        <div class="slot-template-row">
+          <div class="form-field">
+            <label>Mall</label>
+            <select id="slot-template-select">
+              <option value="">— Välj en sparad mall —</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary" id="save-template-btn" type="button">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Spara som mall
+          </button>
+          <button class="btn btn-ghost" id="delete-template-btn" type="button" title="Ta bort vald mall" style="display:none">
+            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Tjänst</label>
+            <select id="new-slot-service"></select>
+          </div>
+          <div class="form-field">
+            <label>Från datum</label>
+            <input type="date" id="new-slot-from">
+          </div>
+          <div class="form-field">
+            <label>Till datum</label>
+            <input type="date" id="new-slot-to">
+          </div>
+          <div class="form-field">
+            <label>Tider</label>
+            <input type="text" id="new-slot-times" placeholder="10:00, 14:00">
+          </div>
+          <div class="form-field">
+            <label>Max platser</label>
+            <input type="number" id="new-slot-max" value="8" min="1" max="50">
+          </div>
+          <div class="form-field" style="grid-column: 1 / -1">
+            <label style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              Veckodagar
+              <button type="button" class="weekday-quick" data-quick="weekdays">Vardagar</button>
+              <button type="button" class="weekday-quick" data-quick="weekends">Helger</button>
+              <button type="button" class="weekday-quick" data-quick="all">Alla</button>
+            </label>
+            <div class="weekday-pills" id="weekday-pills">
+              <button type="button" class="weekday-pill active" data-wd="1">Mån</button>
+              <button type="button" class="weekday-pill active" data-wd="2">Tis</button>
+              <button type="button" class="weekday-pill active" data-wd="3">Ons</button>
+              <button type="button" class="weekday-pill active" data-wd="4">Tor</button>
+              <button type="button" class="weekday-pill active" data-wd="5">Fre</button>
+              <button type="button" class="weekday-pill active" data-wd="6">Lör</button>
+              <button type="button" class="weekday-pill active" data-wd="0">Sön</button>
+            </div>
+          </div>
+          <div class="form-field" style="grid-column: 1 / -1">
+            <div class="slot-preview" id="slot-preview">Fyll i datum och tider ovan — preview visas här.</div>
+          </div>
+          <div class="form-field" style="align-self:end;grid-column: 1 / -1">
+            <button class="btn btn-primary" id="create-slots-btn" style="width:100%;justify-content:center">Skapa tider</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panels-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span id="slot-cal-month">—</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-icon" id="slot-cal-prev"><svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button class="btn btn-ghost btn-icon" id="slot-cal-next"><svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+          </div>
+          <div id="slot-calendar" class="slot-calendar"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Tider denna dag</div>
+            <span class="panel-hint" id="slot-day-label">Välj ett datum</span>
+          </div>
+          <div id="slot-day-list"><div class="empty">Välj ett datum i kalendern</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSTÄLLNINGAR -->
+    <section class="view" id="view-settings">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Inställningar</h1>
+          <div class="view-subtitle">Konto och preferenser</div>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>Mitt konto</h3>
+        <div class="settings-row">
+          <div class="settings-label">E-post</div>
+          <div class="settings-value" id="settings-email">—</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Visningsnamn</div>
+          <div class="settings-value" id="settings-name">—</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">Roll</div>
+          <div class="settings-value" id="settings-role">Admin</div>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>Nyhetsbrev</h3>
+        <div class="settings-row">
+          <div>
+            <div class="settings-value" id="newsletter-count">— prenumeranter</div>
+            <div class="settings-label">Kunder som bockat i nyhetsbrevsrutan vid bokning (deduperat på e-post)</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-secondary" id="newsletter-copy" type="button">Kopiera e-postadresser</button>
+            <button class="btn btn-secondary" id="newsletter-csv" type="button">Exportera CSV</button>
+          </div>
+        </div>
+        <div class="subscriber-list" id="subscriber-list"></div>
+      </div>
+      <div class="settings-card">
+        <h3>Säkerhet</h3>
+        <div class="settings-row">
+          <div>
+            <div class="settings-value">Lösenord</div>
+            <div class="settings-label">Skicka en återställningslänk till din e-post</div>
+          </div>
+          <button class="btn btn-secondary" id="settings-reset-pw">Återställ lösenord</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-value">Logga ut</div>
+            <div class="settings-label">Avsluta din session</div>
+          </div>
+          <button class="btn btn-danger" id="settings-logout">Logga ut</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawer-title">Bokning</div>
+    <button class="btn btn-ghost btn-icon" id="drawer-close">
+      <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-actions" id="drawer-actions"></div>
+</aside>
+
+<!-- ─── MODAL: Lägg till bokning ────────────────────────── -->
+<div class="modal-backdrop" id="mb-backdrop">
+  <div class="modal" id="mb-modal">
+    <div class="modal-header">
+      <div class="modal-title">Ny bokning</div>
+      <button class="btn btn-ghost btn-icon" id="mb-close" type="button" aria-label="Stäng">
+        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-section">
+        <div class="mb-section-title">Tjänst</div>
+        <select id="mb-service" class="mb-slot-select"></select>
+      </div>
+
+      <div class="mb-section">
+        <div class="mb-section-title">Tid</div>
+        <div class="mb-tabs" role="tablist">
+          <button type="button" class="mb-tab active" data-mode="custom">Egen tid</button>
+          <button type="button" class="mb-tab" data-mode="existing">Befintlig tidslucka</button>
+        </div>
+
+        <div class="mb-mode-panel active" id="mb-panel-custom">
+          <div class="mb-cal-header">
+            <button type="button" class="btn btn-ghost btn-icon" id="mb-cal-prev" aria-label="Föregående månad">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="mb-cal-month" id="mb-cal-month">—</div>
+            <button type="button" class="btn btn-ghost btn-icon" id="mb-cal-next" aria-label="Nästa månad">
+              <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div id="mb-calendar" class="slot-calendar"></div>
+
+          <div style="margin-top:14px">
+            <label style="display:block;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Tid på dagen</label>
+            <div id="mb-hour-grid" class="hour-grid"></div>
+            <div class="mb-hour-hint">
+              <span class="swatch dot">Ledig timme</span>
+              <span class="swatch">Har redan tidslucka</span>
+            </div>
+            <div class="mb-time-summary" id="mb-time-summary"></div>
+          </div>
+        </div>
+
+        <div class="mb-mode-panel" id="mb-panel-existing">
+          <select id="mb-existing-slot" class="mb-slot-select">
+            <option value="">— Välj en framtida tid —</option>
+          </select>
+          <div class="mb-hour-hint" style="margin-top:8px">Endast tider med lediga platser (eller där hela tiden blockeras) visas.</div>
+        </div>
+      </div>
+
+      <div class="mb-section">
+        <div class="mb-section-title">Kund</div>
+        <div class="mb-grid-2">
+          <div class="form-field"><label>Förnamn *</label><input type="text" id="mb-first-name" required></div>
+          <div class="form-field"><label>Efternamn</label><input type="text" id="mb-last-name"></div>
+          <div class="form-field"><label>E-post</label><input type="email" id="mb-email" placeholder="valfri"></div>
+          <div class="form-field"><label>Telefon</label><input type="tel" id="mb-phone" placeholder="valfri"></div>
+        </div>
+      </div>
+
+      <div class="mb-section">
+        <div class="mb-section-title">Personer</div>
+        <div class="mb-grid-3">
+          <div class="form-field"><label>Vuxna</label><input type="number" id="mb-adults" min="0" value="2"></div>
+          <div class="form-field"><label>Barn</label><input type="number" id="mb-children" min="0" value="0"></div>
+          <div class="form-field" id="mb-alpacas-wrap"><label>Alpackor</label><input type="number" id="mb-alpacas" min="0" value="0"></div>
+        </div>
+      </div>
+
+      <div class="mb-section">
+        <div class="mb-section-title">
+          Pris
+          <button type="button" id="mb-recalc-price" style="font-size:11px;color:var(--green);background:none;cursor:pointer;font-weight:500;text-transform:none;letter-spacing:0;padding:0">Räkna om från tjänsten</button>
+        </div>
+        <div class="form-field"><input type="number" id="mb-price" min="0" step="1"></div>
+      </div>
+
+      <div class="mb-section">
+        <div class="mb-section-title">Notis</div>
+        <textarea id="mb-note" rows="2" placeholder="Internt — visas inte för kunden" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);outline:none;resize:vertical;font-family:inherit;font-size:14px"></textarea>
+      </div>
+
+      <div class="mb-section">
+        <label class="mb-checkbox">
+          <input type="checkbox" id="mb-block">
+          <div class="mb-checkbox-text">
+            Blockera tiden — ingen annan kan boka samma slot online
+            <small>Markerar bokningen som "slutet sällskap" och fyller tidsluckan. Lämna ifrån om du vill att fler kan boka samma tid.</small>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="mb-cancel" type="button">Avbryt</button>
+      <button class="btn btn-primary" id="mb-submit" type="button">Spara bokning</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  // ── KONFIG ─────────────────────────────────────────────
+  const SB_URL = 'https://zyokiwrzxpgtrsnfymke.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5b2tpd3J6eHBndHJzbmZ5bWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTcxMDYsImV4cCI6MjA5MTA3MzEwNn0.4TvagfYOOamslTS7G3LWGViTSYLn9cj3iVv_jH2e4pA';
+  const LAT = 56.47739536235032, LNG = 14.690764677283862;
+  const ADMIN_FN = SB_URL + '/functions/v1/admin';
+  const WEATHER_FN = SB_URL + '/functions/v1/abicart';
+
+  const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+
+  const MONTHS = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const MONTHS_FULL = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  const DAYS = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+  const DAYS_FULL = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const WMO = {0:'☀',1:'🌤',2:'⛅',3:'☁',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'❄',73:'❄',75:'❄',80:'🌦',81:'🌧',82:'🌧',95:'⛈',96:'⛈',99:'⛈'};
+  const WMO_WARN = [65,75,82,95,96,99];
+
+  // State
+  let currentUser = null;
+  let allBookings = [];
+  let allSlots = [];
+  let services = [];
+  let weatherData = null;
+  let activeView = 'overview';
+  let bookingFilter = 'all';
+  let bookingSearch = '';
+  let charts = {};
+  let slotCalDate = new Date();
+  let slotCalSelected = null;
+  let slotDaySelected = new Set();
+
+  // ── UTILS ──────────────────────────────────────────────
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+  const fmtSEK = n => new Intl.NumberFormat('sv-SE',{style:'currency',currency:'SEK',maximumFractionDigits:0}).format(n || 0);
+  const fmtInt = n => new Intl.NumberFormat('sv-SE').format(n || 0);
+  const esc = s => String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const initials = (f,l) => ((f?.[0]||'') + (l?.[0]||'')).toUpperCase() || '?';
+  const isoDay = d => d.toISOString().split('T')[0];
+  const parseSlot = b => b.time_slots ? { date: b.time_slots.slot_date, time: b.time_slots.slot_time?.substring(0,5) } : null;
+
+  function fmtDate(iso, long){
+    if (!iso) return '—';
+    const d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+    if (long) return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]}`;
+    return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  }
+
+  function toast(msg, type='info'){
+    const wrap = $('#toast-wrap');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const ic = type === 'error' ? '<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+            : type === 'success' ? '<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    t.innerHTML = ic + '<span>' + esc(msg) + '</span>';
+    wrap.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 4500);
+  }
+
+  // ── AUTH ───────────────────────────────────────────────
+  async function init(){
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      await onLoggedIn(session);
+    } else {
+      showLogin();
+    }
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) showLogin();
+    });
+  }
+
+  function showLogin(){
+    $('#login-screen').classList.remove('hidden');
+    $('#app').classList.add('hidden');
+    currentUser = null;
+  }
+
+  async function onLoggedIn(session){
+    currentUser = session.user;
+    const name = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+    $('#user-avatar').textContent = (name[0] || '?').toUpperCase();
+    $('#user-name').textContent = name;
+    $('#user-email').textContent = currentUser.email;
+    $('#settings-email').textContent = currentUser.email;
+    $('#settings-name').textContent = name;
+
+    $('#login-screen').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+
+    await loadAll();
+  }
+
+  $('#login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#login-email').value.trim();
+    const password = $('#login-password').value;
+    const btn = $('#login-submit');
+    btn.disabled = true; btn.textContent = 'Loggar in…';
+    clearLoginMessage();
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      showLoginMessage(error.message || 'Kunde inte logga in', 'error');
+      btn.disabled = false; btn.textContent = 'Logga in';
+      return;
+    }
+    await onLoggedIn(data.session);
+  });
+
+  $('#login-forgot').addEventListener('click', async () => {
+    const email = $('#login-email').value.trim();
+    if (!email) { showLoginMessage('Ange din e-post ovan och tryck "Glömt lösenord" igen', 'info'); return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    if (error) showLoginMessage(error.message, 'error');
+    else showLoginMessage('En återställningslänk har skickats till ' + email, 'success');
+  });
+
+  function showLoginMessage(msg, kind){
+    const el = $('#login-message');
+    el.className = 'login-message ' + kind;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function clearLoginMessage(){ $('#login-message').style.display = 'none'; }
+
+  async function logout(){
+    await sb.auth.signOut();
+    showLogin();
+  }
+  $('#user-logout-btn').addEventListener('click', logout);
+  $('#settings-logout').addEventListener('click', logout);
+
+  $('#settings-reset-pw').addEventListener('click', async () => {
+    if (!currentUser) return;
+    const { error } = await sb.auth.resetPasswordForEmail(currentUser.email, { redirectTo: location.origin + location.pathname });
+    if (error) toast(error.message, 'error');
+    else toast('Återställningslänk skickad', 'success');
+  });
+
+  // ── ADMIN FUNCTION CALLS ───────────────────────────────
+  async function adminCall(body){
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('Inte inloggad');
+    const r = await fetch(ADMIN_FN, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    let data = null;
+    try { data = await r.json(); } catch(_) {}
+    if (!r.ok || (data && data.ok === false)) {
+      const err = (data && data.error) || ('HTTP ' + r.status);
+      throw new Error(err);
+    }
+    return data;
+  }
+
+  // ── DATALADDNING ───────────────────────────────────────
+  async function loadAll(){
+    try {
+      await Promise.all([loadServices(), loadBookings(), loadSlots(), loadWeather()]);
+      renderOverview();
+      renderBookings();
+      renderSlotCalendar();
+      populateSlotForm();
+      renderNewsletter();
+    } catch(e) {
+      console.error(e);
+      toast('Kunde inte ladda data: ' + e.message, 'error');
+    }
+  }
+
+  // ── NYHETSBREV ──────────────────────────────────────────
+  function uniqueSubscribers(){
+    const seen = new Map();
+    allBookings.forEach(b => {
+      if (!b.newsletter_consent || !b.email) return;
+      const key = b.email.toLowerCase().trim();
+      // Behåll senaste bokningens namn-version
+      if (!seen.has(key) || new Date(b.created_at) > new Date(seen.get(key).created_at)) {
+        seen.set(key, b);
+      }
+    });
+    return Array.from(seen.values());
+  }
+
+  function renderNewsletter(){
+    const subs = uniqueSubscribers();
+    const countEl = $('#newsletter-count');
+    if (countEl) countEl.textContent = `${subs.length} ${subs.length === 1 ? 'prenumerant' : 'prenumeranter'}`;
+    const listEl = $('#subscriber-list');
+    if (!listEl) return;
+    if (!subs.length) { listEl.innerHTML = ''; return; }
+    listEl.innerHTML = subs
+      .sort((a,b) => (a.first_name + a.last_name).localeCompare(b.first_name + b.last_name, 'sv'))
+      .map(s => `<div class="subscriber-row" data-email="${esc(s.email.toLowerCase())}">
+        <div class="subscriber-info">
+          <div class="subscriber-name">${esc(s.first_name)} ${esc(s.last_name)}</div>
+          <div class="subscriber-email">${esc(s.email)}</div>
+        </div>
+        <button class="subscriber-unsubscribe" type="button" title="Avregistrera från nyhetsbrev">Avregistrera</button>
+      </div>`).join('');
+    listEl.querySelectorAll('.subscriber-row').forEach(row => {
+      const btn = row.querySelector('.subscriber-unsubscribe');
+      btn.addEventListener('click', async () => {
+        const email = row.dataset.email;
+        const display = row.querySelector('.subscriber-name').textContent;
+        if (!confirm(`Avregistrera ${display} (${email}) från nyhetsbrevet?\n\nDetta sätter newsletter_consent=false på alla bokningar för denna e-post.`)) return;
+        btn.disabled = true; btn.textContent = '…';
+        try {
+          await adminCall({ action: 'setNewsletterConsent', email, consent: false });
+          // Uppdatera lokalt cache så listan uppdateras direkt
+          allBookings.forEach(b => { if (b.email && b.email.toLowerCase() === email) b.newsletter_consent = false; });
+          renderNewsletter();
+          toast(`${display} avregistrerad`, 'success');
+        } catch(e) {
+          btn.disabled = false; btn.textContent = 'Avregistrera';
+          toast('Fel: ' + e.message, 'error');
+        }
+      });
+    });
+  }
+
+  $('#newsletter-copy')?.addEventListener('click', async () => {
+    const subs = uniqueSubscribers();
+    if (!subs.length) { toast('Inga prenumeranter ännu', 'info'); return; }
+    const emails = subs.map(s => s.email).join(', ');
+    try {
+      await navigator.clipboard.writeText(emails);
+      toast(`${subs.length} e-postadresser kopierade — klistra in i BCC`, 'success');
+    } catch(_) {
+      const ta = document.createElement('textarea');
+      ta.value = emails; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove();
+      toast(`${subs.length} e-postadresser kopierade`, 'success');
+    }
+  });
+
+  $('#newsletter-csv')?.addEventListener('click', () => {
+    const subs = uniqueSubscribers();
+    if (!subs.length) { toast('Inga prenumeranter ännu', 'info'); return; }
+    const csvEsc = v => '"' + String(v || '').replace(/"/g, '""') + '"';
+    const rows = [['Förnamn','Efternamn','E-post','Bokningsdatum'].map(csvEsc).join(',')];
+    subs.forEach(s => rows.push([s.first_name, s.last_name, s.email, new Date(s.created_at).toLocaleDateString('sv-SE')].map(csvEsc).join(',')));
+    // BOM så Excel öppnar UTF-8 korrekt
+    const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nyhetsbrev-honshyltegard-${new Date().toISOString().substring(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast(`${subs.length} prenumeranter exporterade`, 'success');
+  });
+
+  async function loadServices(){
+    const { data, error } = await sb.from('services').select('id,name,price,price_child,max_spots,min_persons').order('id');
+    if (error) throw error;
+    services = data || [];
+  }
+
+  async function loadBookings(){
+    const { data, error } = await sb.from('bookings')
+      .select('*, services(name,price,price_child), time_slots(slot_date,slot_time)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    allBookings = data || [];
+  }
+
+  async function loadSlots(){
+    const { data, error } = await sb.from('time_slots')
+      .select('id,service_id,slot_date,slot_time,max_spots,booked_spots,active,services(name)')
+      .eq('active', true)
+      .gte('slot_date', isoDay(new Date(Date.now() - 30 * 86400000)))
+      .order('slot_date').order('slot_time');
+    if (error) throw error;
+    allSlots = data || [];
+  }
+
+  async function loadWeather(){
+    try {
+      const r = await fetch(WEATHER_FN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'weather', lat: LAT, lng: LNG }),
+      });
+      const j = await r.json();
+      weatherData = j.daily || null;
+    } catch(e) { console.warn('weather', e); }
+  }
+
+  // ── ÖVERSIKT ───────────────────────────────────────────
+  function renderOverview(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = isoDay(today);
+    $('#today-date').textContent = fmtDate(todayStr, true);
+
+    const confirmed = allBookings.filter(b => b.status !== 'cancelled');
+    const nonTest = confirmed;
+
+    const thisWeek = nonTest.filter(b => new Date(b.created_at) >= daysAgo(7));
+    const lastWeek = nonTest.filter(b => { const d = new Date(b.created_at); return d >= daysAgo(14) && d < daysAgo(7); });
+    const thisMonth = nonTest.filter(b => new Date(b.created_at) >= daysAgo(30));
+    const prevMonth = nonTest.filter(b => { const d = new Date(b.created_at); return d >= daysAgo(60) && d < daysAgo(30); });
+
+    const revThisMonth = nonTest.filter(b => b.payment_status === 'paid' && new Date(b.created_at) >= daysAgo(30))
+      .reduce((s, b) => s + (b.total_price || 0), 0);
+    const revPrevMonth = nonTest.filter(b => { const d = new Date(b.created_at); return b.payment_status === 'paid' && d >= daysAgo(60) && d < daysAgo(30); })
+      .reduce((s, b) => s + (b.total_price || 0), 0);
+
+    const upcoming30 = allSlots.filter(s => s.slot_date >= todayStr && s.slot_date <= isoDay(daysAgo(-30)));
+    const capTotal = upcoming30.reduce((s, x) => s + (x.max_spots || 0), 0);
+    const capBooked = upcoming30.reduce((s, x) => s + (x.booked_spots || 0), 0);
+    const fillRate = capTotal > 0 ? Math.round((capBooked / capTotal) * 100) : 0;
+
+    const paidCount = nonTest.filter(b => b.payment_status === 'paid').length;
+    const convRate = nonTest.length > 0 ? Math.round((paidCount / nonTest.length) * 100) : 0;
+
+    $('#overview-subtitle').textContent = `${nonTest.length} bokningar totalt · ${paidCount} betalda · ${allSlots.length} aktiva tidsluckor`;
+    $('#nav-bookings-badge').textContent = confirmed.length;
+    $('#nav-bookings-badge').style.display = confirmed.length ? 'inline-flex' : 'none';
+
+    $('#kpi-grid').innerHTML = [
+      kpiCard('Bokningar · 7 dagar', fmtInt(thisWeek.length), deltaPct(thisWeek.length, lastWeek.length), 'calendar'),
+      kpiCard('Intäkter · 30 dagar', fmtSEK(revThisMonth), deltaPct(revThisMonth, revPrevMonth), 'coins', 'accent'),
+      kpiCard('Fyllnadsgrad · kommande 30 d', fillRate + '%', `${fmtInt(capBooked)} av ${fmtInt(capTotal)} platser`, 'gauge', 'brown'),
+      kpiCard('Konverteringsgrad', convRate + '%', `${paidCount} av ${nonTest.length} bokningar betalda`, 'target', 'info'),
+    ].join('');
+
+    renderAlertStrip(nonTest);
+    renderTodaySchedule(todayStr);
+    renderUpcomingList(nonTest);
+    renderWeather();
+    renderCharts(nonTest);
+  }
+
+  function daysAgo(n){
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - n); return d;
+  }
+
+  function deltaPct(now, prev){
+    if (!prev && !now) return { text: 'Ingen förändring', dir: 'flat' };
+    if (!prev) return { text: 'Ny period · inga tidigare data', dir: 'flat' };
+    const pct = Math.round(((now - prev) / prev) * 100);
+    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+    return { text: `${arrow} ${Math.abs(pct)}% mot föregående period`, dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat' };
+  }
+
+  function kpiCard(label, value, delta, icon, variant=''){
+    const icons = {
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      coins: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+      gauge: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+      target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    };
+    const deltaObj = typeof delta === 'object' ? delta : { text: delta, dir: 'flat' };
+    return `<div class="kpi-card ${variant}">
+      <div class="kpi-label">
+        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${icons[icon] || ''}</svg>
+        ${esc(label)}
+      </div>
+      <div class="kpi-value">${value}</div>
+      <div class="kpi-delta ${deltaObj.dir}">${esc(deltaObj.text)}</div>
+    </div>`;
+  }
+
+  function renderAlertStrip(bookings){
+    const strip = $('#alert-strip');
+    const alerts = [];
+
+    const stale = bookings.filter(b => b.payment_status === 'pending' && b.abicart_order_id && (Date.now() - new Date(b.created_at).getTime()) > 24 * 3600 * 1000);
+    if (stale.length > 0) alerts.push({
+      type: '', icon: 'alert',
+      title: `${stale.length} bokningar väntar på betalning`,
+      text: 'Äldre än 24h med obetald Abicart-order. Synka betalningar för att kolla.',
+    });
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = isoDay(today);
+    const todayBookings = bookings.filter(b => b.time_slots && b.time_slots.slot_date === todayStr);
+    if (todayBookings.length > 0) alerts.push({
+      type: 'info', icon: 'calendar',
+      title: `${todayBookings.length} bokningar idag`,
+      text: `${todayBookings.reduce((s,b) => s + (b.adults||0) + (b.children||0), 0)} gäster totalt`,
+    });
+
+    const remindersDue = bookings.filter(b => {
+      if (b.status !== 'confirmed' || b.reminder_sent_at) return false;
+      const d = b.time_slots?.slot_date;
+      if (!d) return false;
+      const diff = (new Date(d + 'T00:00:00').getTime() - Date.now()) / (86400 * 1000);
+      return diff > 0 && diff < 2;
+    });
+    if (remindersDue.length > 0) alerts.push({
+      type: 'info', icon: 'mail',
+      title: `${remindersDue.length} påminnelser att skicka`,
+      text: 'Bokningar inom 48h utan skickad påminnelse.',
+    });
+
+    if (alerts.length === 0) alerts.push({
+      type: 'ok', icon: 'check',
+      title: 'Allt är under kontroll',
+      text: 'Inga brådskande åtgärder just nu.',
+    });
+
+    const icons = {
+      alert: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>',
+      mail: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>',
+    };
+    strip.innerHTML = alerts.map(a => `
+      <div class="alert-card ${a.type}">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${icons[a.icon]}</svg>
+        <div class="alert-body">
+          <div class="alert-title">${esc(a.title)}</div>
+          <div class="alert-text">${esc(a.text)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderTodaySchedule(todayStr){
+    const el = $('#today-schedule');
+    const todaySlots = allSlots.filter(s => s.slot_date === todayStr);
+    if (!todaySlots.length) { el.innerHTML = '<div class="empty">Inga tider schemalagda idag</div>'; return; }
+    el.innerHTML = todaySlots.map(s => {
+      const pct = Math.round((s.booked_spots / s.max_spots) * 100);
+      const full = s.booked_spots >= s.max_spots;
+      return `<div class="schedule-item">
+        <div class="schedule-time">${s.slot_time.substring(0,5)}</div>
+        <div class="schedule-body">
+          <div class="schedule-name">${esc(s.services?.name || 'Tjänst')}</div>
+          <div class="schedule-meta">${s.booked_spots}/${s.max_spots} platser ${full ? '· Fullt' : '· ' + (s.max_spots - s.booked_spots) + ' kvar'}</div>
+          <div class="schedule-bar"><div class="schedule-bar-fill ${full ? 'full' : ''}" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderUpcomingList(bookings){
+    const el = $('#upcoming-list');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = isoDay(today);
+    const upcoming = bookings
+      .filter(b => b.time_slots && b.time_slots.slot_date >= todayStr && b.status !== 'cancelled')
+      .sort((a,b) => (a.time_slots.slot_date + a.time_slots.slot_time).localeCompare(b.time_slots.slot_date + b.time_slots.slot_time))
+      .slice(0, 10);
+    if (!upcoming.length) { el.innerHTML = '<div class="empty">Inga kommande bokningar</div>'; return; }
+    const checkIcon = '<svg class="confirm-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    el.innerHTML = '<div class="list">' + upcoming.map(b => {
+      const slot = parseSlot(b);
+      const sent = !!b.confirmation_sent_at;
+      return `<div class="list-item" onclick="window.__openBooking(${b.id})">
+        <div class="list-avatar">${initials(b.first_name, b.last_name)}</div>
+        <div class="list-info">
+          <div class="list-name">${esc(b.first_name)} ${esc(b.last_name)}${sent ? ' <span title="Bekräftelsemejl skickat" class="confirm-check-wrap">' + checkIcon + '</span>' : ''}</div>
+          <div class="list-meta">${esc(b.services?.name || '—')} · ${(b.adults||0)+(b.children||0)} pers.</div>
+        </div>
+        <div class="list-right">
+          <div>${slot ? fmtDate(slot.date) + ' · ' + slot.time : '—'}</div>
+          <div style="margin-top:3px"><span class="badge ${b.status}">${statusLabel(b.status)}</span></div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  function renderWeather(){
+    const row = $('#weather-row');
+    if (!weatherData || !weatherData.time) { row.innerHTML = '<div class="empty">Väderdata saknas</div>'; return; }
+    const today = isoDay(new Date());
+    let hasWarn = false;
+    row.innerHTML = weatherData.time.map((date, i) => {
+      const d = new Date(date + 'T12:00:00');
+      if (WMO_WARN.includes(weatherData.weathercode[i])) hasWarn = true;
+      const rain = weatherData.precipitation_sum[i] > 0 ? Math.round(weatherData.precipitation_sum[i]) + 'mm' : '';
+      return `<div class="weather-card ${date === today ? 'today' : ''}">
+        <div class="w-date">${date === today ? 'Idag' : DAYS[(d.getDay()+6)%7] + ' ' + d.getDate()}</div>
+        <div class="w-icon">${WMO[weatherData.weathercode[i]] || '🌡'}</div>
+        <div class="w-temp">${Math.round(weatherData.temperature_2m_max[i])}°/${Math.round(weatherData.temperature_2m_min[i])}°</div>
+        ${rain ? `<div class="w-rain">${rain}</div>` : ''}
+      </div>`;
+    }).join('');
+    $('#weather-warn-label').style.display = hasWarn ? 'block' : 'none';
+  }
+
+  function renderCharts(bookings){
+    // Cleanup old charts
+    Object.values(charts).forEach(c => c?.destroy());
+    charts = {};
+
+    const days = parseInt($('#trend-range').value, 10);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const labels = [];
+    const dataPaid = [];
+    const dataPending = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = isoDay(d);
+      labels.push(days <= 30 ? `${d.getDate()} ${MONTHS[d.getMonth()]}` : (d.getDate() === 1 ? MONTHS[d.getMonth()] : ''));
+      const onDay = bookings.filter(b => isoDay(new Date(b.created_at)) === ds);
+      dataPaid.push(onDay.filter(b => b.payment_status === 'paid').length);
+      dataPending.push(onDay.filter(b => b.payment_status !== 'paid').length);
+    }
+    charts.bookings = new Chart($('#chart-bookings'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Betalda', data: dataPaid, backgroundColor: '#3D5A3E', borderRadius: 4 },
+          { label: 'Pending', data: dataPending, backgroundColor: '#E8C070', borderRadius: 4 },
+        ],
+      },
+      options: chartBase({ stacked: true }),
+    });
+
+    // Services donut
+    const svcMap = {};
+    bookings.forEach(b => { const k = b.services?.name || 'Okänd'; svcMap[k] = (svcMap[k] || 0) + 1; });
+    charts.services = new Chart($('#chart-services'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(svcMap),
+        datasets: [{ data: Object.values(svcMap), backgroundColor: ['#3D5A3E','#B8832A','#8B6A44','#5A7D5B'], borderWidth: 0 }],
+      },
+      options: { ...chartBase(), plugins: { legend: { position: 'bottom', labels: { font: { family: 'Jost', size: 11 }, color: '#7A6A55' } } }, cutout: '62%' },
+    });
+
+    // Revenue per week (12 weeks)
+    const weeks = [];
+    const weekData = [];
+    for (let i = 11; i >= 0; i--) {
+      const wStart = new Date(today); wStart.setDate(wStart.getDate() - i * 7 - today.getDay() + 1);
+      const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
+      weeks.push(`v.${getWeek(wStart)}`);
+      const rev = bookings.filter(b => {
+        const d = new Date(b.created_at);
+        return b.payment_status === 'paid' && d >= wStart && d <= wEnd;
+      }).reduce((s, b) => s + (b.total_price || 0), 0);
+      weekData.push(rev);
+    }
+    charts.revenue = new Chart($('#chart-revenue'), {
+      type: 'line',
+      data: { labels: weeks, datasets: [{ label: 'Intäkt', data: weekData, borderColor: '#3D5A3E', backgroundColor: 'rgba(61,90,62,0.1)', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#3D5A3E' }] },
+      options: { ...chartBase(), plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtSEK(ctx.raw) } } }, scales: { y: { beginAtZero: true, ticks: { callback: v => fmtSEK(v).replace(/\s*kr/, ' kr') } }, x: chartBase().scales.x } },
+    });
+
+    // Weekday bar
+    const weekdays = [0,0,0,0,0,0,0];
+    bookings.forEach(b => { const slot = parseSlot(b); if (slot) { const d = new Date(slot.date + 'T12:00:00'); weekdays[(d.getDay()+6)%7]++; }});
+    charts.weekday = new Chart($('#chart-weekday'), {
+      type: 'bar',
+      data: { labels: DAYS, datasets: [{ data: weekdays, backgroundColor: '#5A7D5B', borderRadius: 4 }] },
+      options: { ...chartBase(), plugins: { legend: { display: false } } },
+    });
+  }
+
+  function chartBase(opts = {}){
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { font: { family: 'Jost', size: 11 }, color: '#7A6A55', boxWidth: 12, boxHeight: 12 } },
+        tooltip: { backgroundColor: '#221A0F', titleFont: { family: 'Jost' }, bodyFont: { family: 'Jost' }, padding: 10, cornerRadius: 8 },
+      },
+      scales: {
+        x: { stacked: !!opts.stacked, grid: { display: false }, ticks: { font: { family: 'Jost', size: 10 }, color: '#B0A698', maxRotation: 0 } },
+        y: { stacked: !!opts.stacked, beginAtZero: true, grid: { color: '#EBE3D0' }, ticks: { font: { family: 'Jost', size: 10 }, color: '#B0A698', precision: 0 } },
+      },
+    };
+  }
+
+  function getWeek(d){
+    const target = new Date(d.valueOf());
+    const dayNr = (d.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    return 1 + Math.ceil((firstThursday - target) / 604800000);
+  }
+
+  $('#trend-range').addEventListener('change', () => renderCharts(allBookings.filter(b => b.status !== 'cancelled')));
+  $('#refresh-btn').addEventListener('click', async () => { await loadAll(); toast('Uppdaterat', 'success'); });
+
+  $('#sync-payments-btn').addEventListener('click', async () => {
+    const pending = allBookings.filter(b => b.abicart_order_id && b.payment_status !== 'paid');
+    if (!pending.length) { toast('Inga väntande betalningar', 'info'); return; }
+    const btn = $('#sync-payments-btn');
+    btn.disabled = true;
+    let synced = 0;
+    for (const b of pending) {
+      try {
+        const r = await fetch(WEATHER_FN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'confirmPayment', order_id: b.abicart_order_id }),
+        });
+        const data = await r.json();
+        if (data.paid) synced++;
+      } catch(_) {}
+    }
+    await loadBookings();
+    renderOverview();
+    renderBookings();
+    btn.disabled = false;
+    toast(`Synkning klar · ${synced} av ${pending.length} bekräftade`, synced ? 'success' : 'info');
+  });
+
+  // ── BOKNINGAR ──────────────────────────────────────────
+  function statusLabel(s){
+    return { confirmed: 'Bekräftad', cancelled: 'Avbokad', completed: 'Genomförd', no_show: 'Ej mött upp', pending_payment: 'Väntar betalning' }[s] || s || '—';
+  }
+
+  function renderBookings(){
+    const body = $('#bookings-body');
+    let rows = allBookings.slice();
+    if (bookingFilter === '__manual') rows = rows.filter(b => b.source === 'manual');
+    else if (bookingFilter !== 'all') rows = rows.filter(b => b.status === bookingFilter);
+    if (bookingSearch) {
+      const q = bookingSearch.toLowerCase();
+      rows = rows.filter(b =>
+        (b.first_name + ' ' + b.last_name).toLowerCase().includes(q) ||
+        (b.email || '').toLowerCase().includes(q) ||
+        String(b.id) === q);
+    }
+    $('#bookings-subtitle').textContent = `Visar ${rows.length} av ${allBookings.length} bokningar`;
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="7" class="empty">Inga bokningar matchade</td></tr>';
+      return;
+    }
+    const checkIcon = '<svg class="confirm-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    body.innerHTML = rows.map(b => {
+      const slot = parseSlot(b);
+      const sent = !!b.confirmation_sent_at;
+      const idCell = `<div class="td-main">#${b.id}${sent ? ' <span title="Bekräftelsemejl skickat" class="confirm-check-wrap">' + checkIcon + '</span>' : ''}</div><div class="td-sub">${fmtDate(b.created_at)}</div>`;
+      const manualBadge = b.source === 'manual' ? '<span class="source-badge">Manuell</span>' : '';
+      return `<tr onclick="window.__openBooking(${b.id})">
+        <td>${idCell}</td>
+        <td><div class="td-main">${esc(b.first_name)} ${esc(b.last_name)}${manualBadge}</div><div class="td-sub">${esc(b.email) || (b.phone ? esc(b.phone) : '—')}</div></td>
+        <td><div class="td-main">${esc(b.services?.name || '—')}</div></td>
+        <td>${slot ? `<div class="td-main">${fmtDate(slot.date)}</div><div class="td-sub">kl. ${slot.time}</div>` : '<span class="td-sub">—</span>'}</td>
+        <td><div class="td-main">${(b.adults||0)+(b.children||0)}</div><div class="td-sub">${b.adults||0}v · ${b.children||0}b</div></td>
+        <td><div class="td-main">${fmtSEK(b.total_price)}</div><div class="td-sub"><span class="badge ${b.payment_status}">${b.payment_status === 'paid' ? 'Betald' : 'Väntar'}</span></div></td>
+        <td><span class="badge ${b.status}">${statusLabel(b.status)}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  $('#booking-search').addEventListener('input', e => { bookingSearch = e.target.value.trim(); renderBookings(); });
+  $$('.filter-pill[data-filter]').forEach(p => p.addEventListener('click', () => {
+    $$('.filter-pill[data-filter]').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    bookingFilter = p.dataset.filter;
+    renderBookings();
+  }));
+
+  // Booking drawer
+  window.__openBooking = function(id){
+    const b = allBookings.find(x => x.id === id);
+    if (!b) return;
+    const slot = parseSlot(b);
+    $('#drawer-title').innerHTML = `Bokning #${b.id}${b.source === 'manual' ? ' <span class="source-badge">Manuell</span>' : ''}`;
+    $('#drawer-body').innerHTML = `
+      <div class="drawer-section">
+        <h4>Kund</h4>
+        <div class="drawer-field"><div class="drawer-field-label">Namn</div><div class="drawer-field-value">${esc(b.first_name)} ${esc(b.last_name)}</div></div>
+        <div class="drawer-field"><div class="drawer-field-label">E-post</div><div class="drawer-field-value"><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></div></div>
+        ${b.phone ? `<div class="drawer-field"><div class="drawer-field-label">Telefon</div><div class="drawer-field-value"><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a></div></div>` : ''}
+      </div>
+      <div class="drawer-section">
+        <h4>Bokning</h4>
+        <div class="drawer-field"><div class="drawer-field-label">Tjänst</div><div class="drawer-field-value">${esc(b.services?.name || '—')}</div></div>
+        <div class="drawer-field"><div class="drawer-field-label">När</div><div class="drawer-field-value">${slot ? fmtDate(slot.date, true) + ' kl. ' + slot.time : '—'}</div></div>
+        <div class="drawer-field"><div class="drawer-field-label">Vuxna</div><div class="drawer-field-value">${b.adults || 0}</div></div>
+        <div class="drawer-field"><div class="drawer-field-label">Barn</div><div class="drawer-field-value">${b.children || 0}</div></div>
+        ${b.alpacas ? `<div class="drawer-field"><div class="drawer-field-label">Alpackor</div><div class="drawer-field-value">${b.alpacas}</div></div>` : ''}
+        <div class="drawer-field"><div class="drawer-field-label">Totalt</div><div class="drawer-field-value">${fmtSEK(b.total_price)}</div></div>
+        ${b.private_party ? `<div class="drawer-field"><div class="drawer-field-label">Slutet sällskap</div><div class="drawer-field-value">Ja</div></div>` : ''}
+        ${b.special_needs ? `<div class="drawer-field"><div class="drawer-field-label">Särskilda behov</div><div class="drawer-field-value">${esc(b.special_needs)}</div></div>` : ''}
+        ${b.note ? `<div class="drawer-field"><div class="drawer-field-label">Övrigt</div><div class="drawer-field-value">${esc(b.note)}</div></div>` : ''}
+      </div>
+      <div class="drawer-section">
+        <h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          Bekräftelsemejl
+          ${b.confirmation_sent_at ? `<span class="email-gen-status" id="email-status-${b.id}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Skickat ${new Date(b.confirmation_sent_at).toLocaleString('sv-SE',{dateStyle:'short',timeStyle:'short'})}</span>` : `<span class="email-gen-status" id="email-status-${b.id}" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Skickat</span>`}
+        </h4>
+        <div class="email-gen">
+          <div class="email-gen-row">
+            <div class="email-lang-pills" id="email-lang-pills-${b.id}">
+              <button type="button" class="email-lang-pill active" data-lang="sv">SV</button>
+              <button type="button" class="email-lang-pill" data-lang="en">EN</button>
+              <button type="button" class="email-lang-pill" data-lang="de">DE</button>
+            </div>
+            <button class="btn btn-primary" id="email-gen-btn-${b.id}" type="button">Generera mejl</button>
+          </div>
+          <div class="email-gen-hint">AI skriver ett personligt mejl baserat på bokningens detaljer. Du kopierar och skickar själv.</div>
+          <div id="email-result-${b.id}" style="display:none">
+            <textarea id="email-text-${b.id}" placeholder="Genererat mejl visas här…"></textarea>
+            <div class="email-gen-actions">
+              <button class="btn btn-secondary" id="email-copy-${b.id}" type="button">Kopiera mejl</button>
+              <button class="btn btn-ghost" id="email-regen-${b.id}" type="button">Generera om</button>
+              <button class="btn btn-secondary" id="email-mailto-${b.id}" type="button">Öppna i mejlklient</button>
+            </div>
+          </div>
+          <div class="email-gen-actions" style="margin-top:10px;border-top:1px solid var(--border-lt);padding-top:10px">
+            <button class="btn btn-ghost" id="email-mark-sent-${b.id}" type="button">${b.confirmation_sent_at ? 'Ångra "skickat"' : 'Markera som skickat'}</button>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <h4>Status</h4>
+        <div class="drawer-field"><div class="drawer-field-label">Status</div><div class="drawer-field-value"><span class="badge ${b.status}">${statusLabel(b.status)}</span></div></div>
+        <div class="drawer-field"><div class="drawer-field-label">Betalning</div><div class="drawer-field-value"><span class="badge ${b.payment_status}">${b.payment_status === 'paid' ? 'Betald' : 'Väntar'}</span></div></div>
+        ${b.abicart_order_id ? `<div class="drawer-field"><div class="drawer-field-label">Abicart-order</div><div class="drawer-field-value">#${b.abicart_order_id}</div></div>` : ''}
+        <div class="drawer-field"><div class="drawer-field-label">Skapad</div><div class="drawer-field-value">${new Date(b.created_at).toLocaleString('sv-SE')}</div></div>
+        ${b.reminder_sent_at ? `<div class="drawer-field"><div class="drawer-field-label">Påminnelse</div><div class="drawer-field-value">${new Date(b.reminder_sent_at).toLocaleString('sv-SE')}</div></div>` : ''}
+      </div>`;
+
+    const actions = $('#drawer-actions');
+    const canConfirm = b.status === 'pending_payment' || b.status === 'cancelled';
+    const canComplete = b.status === 'confirmed';
+    const canCancel = b.status !== 'cancelled';
+    actions.innerHTML = `
+      ${canConfirm ? `<button class="btn btn-primary" data-act="confirm">Bekräfta</button>` : ''}
+      ${canComplete ? `<button class="btn btn-secondary" data-act="complete">Genomförd</button>` : ''}
+      ${canCancel ? `<button class="btn btn-secondary" data-act="cancel">Avboka</button>` : ''}
+      <button class="btn btn-danger" data-act="delete">Ta bort</button>`;
+
+    actions.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const act = btn.dataset.act;
+        if (act === 'delete') { if (!confirm(`Ta bort bokning #${b.id}? Går ej att ångra.`)) return; }
+        btn.disabled = true;
+        try {
+          if (act === 'delete') {
+            await adminCall({ action: 'deleteBooking', id: b.id });
+            allBookings = allBookings.filter(x => x.id !== b.id);
+            toast('Bokning borttagen', 'success');
+            closeDrawer();
+          } else {
+            const newStatus = { confirm: 'confirmed', complete: 'completed', cancel: 'cancelled' }[act];
+            await adminCall({ action: 'updateBookingStatus', id: b.id, status: newStatus });
+            const idx = allBookings.findIndex(x => x.id === b.id);
+            if (idx >= 0) allBookings[idx].status = newStatus;
+            toast('Status uppdaterad', 'success');
+            window.__openBooking(b.id);
+          }
+          renderBookings();
+          renderOverview();
+        } catch(e) {
+          toast('Fel: ' + e.message, 'error');
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // ── AI-mejlgenerator ───────────────────────────────
+    let emailLang = 'sv';
+    const langPills = $('#email-lang-pills-' + b.id);
+    langPills.querySelectorAll('.email-lang-pill').forEach(p => p.addEventListener('click', () => {
+      langPills.querySelectorAll('.email-lang-pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      emailLang = p.dataset.lang;
+    }));
+
+    async function generateEmail(){
+      const genBtn = $('#email-gen-btn-' + b.id);
+      const regenBtn = $('#email-regen-' + b.id);
+      const result = $('#email-result-' + b.id);
+      const textarea = $('#email-text-' + b.id);
+      genBtn.disabled = true; if (regenBtn) regenBtn.disabled = true;
+      genBtn.textContent = 'Genererar…';
+      try {
+        const data = await adminCall({ action: 'generateConfirmationEmail', id: b.id, lang: emailLang });
+        textarea.value = data.email || '';
+        result.style.display = 'block';
+        genBtn.textContent = 'Generera mejl';
+      } catch(e) {
+        toast('AI-fel: ' + e.message, 'error');
+        genBtn.textContent = 'Generera mejl';
+      } finally {
+        genBtn.disabled = false; if (regenBtn) regenBtn.disabled = false;
+      }
+    }
+    $('#email-gen-btn-' + b.id).addEventListener('click', generateEmail);
+    $('#email-regen-' + b.id).addEventListener('click', generateEmail);
+    $('#email-copy-' + b.id).addEventListener('click', async () => {
+      const text = $('#email-text-' + b.id).value;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('Mejl kopierat — klistra in i ditt mejlprogram', 'success');
+      } catch(_) {
+        // Fallback för äldre browsers
+        const ta = $('#email-text-' + b.id);
+        ta.select(); document.execCommand('copy');
+        toast('Mejl kopierat', 'success');
+      }
+    });
+    $('#email-mailto-' + b.id).addEventListener('click', () => {
+      const text = $('#email-text-' + b.id).value;
+      if (!text) { toast('Generera mejlet först', 'info'); return; }
+      const slot = parseSlot(b);
+      const subjects = {
+        sv: `Din bokning hos Hönshyltegård · ${slot ? fmtDate(slot.date) + ' kl. ' + slot.time : '#' + b.id}`,
+        en: `Your booking at Hönshyltegård · ${slot ? fmtDate(slot.date) + ' at ' + slot.time : '#' + b.id}`,
+        de: `Ihre Buchung bei Hönshyltegård · ${slot ? fmtDate(slot.date) + ' um ' + slot.time : '#' + b.id}`,
+      };
+      const subject = subjects[emailLang] || subjects.sv;
+      const url = 'mailto:' + encodeURIComponent(b.email) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
+      window.location.href = url;
+      // Markera automatiskt som skickat när Helena öppnar i mejlklient
+      if (!b.confirmation_sent_at) markConfirmationSent(true);
+    });
+
+    async function markConfirmationSent(sent){
+      const btn = $('#email-mark-sent-' + b.id);
+      btn.disabled = true;
+      try {
+        const data = await adminCall({ action: 'setConfirmationSent', id: b.id, sent });
+        const ts = data?.booking?.confirmation_sent_at || null;
+        b.confirmation_sent_at = ts;
+        const idx = allBookings.findIndex(x => x.id === b.id);
+        if (idx >= 0) allBookings[idx].confirmation_sent_at = ts;
+        toast(sent ? 'Markerad som skickat' : 'Markering borttagen', 'success');
+        renderBookings();
+        // Re-rendera drawer för att visa uppdaterad pill + knapp-text
+        window.__openBooking(b.id);
+      } catch(e) {
+        toast('Fel: ' + e.message, 'error');
+        btn.disabled = false;
+      }
+    }
+    $('#email-mark-sent-' + b.id).addEventListener('click', () => {
+      markConfirmationSent(!b.confirmation_sent_at);
+    });
+
+    openDrawer();
+  };
+
+  function openDrawer(){ $('#drawer-backdrop').classList.add('open'); $('#drawer').classList.add('open'); }
+  function closeDrawer(){ $('#drawer-backdrop').classList.remove('open'); $('#drawer').classList.remove('open'); }
+  $('#drawer-close').addEventListener('click', closeDrawer);
+  $('#drawer-backdrop').addEventListener('click', closeDrawer);
+
+  // ── SLOTS ──────────────────────────────────────────────
+  const TEMPLATE_KEY = 'sam_hhg_slot_templates';
+
+  function populateSlotForm(){
+    const sel = $('#new-slot-service');
+    sel.innerHTML = services.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    const today = new Date();
+    $('#new-slot-from').value = isoDay(today);
+    const t = new Date(today); t.setMonth(t.getMonth() + 1);
+    $('#new-slot-to').value = isoDay(t);
+    refreshTemplateDropdown();
+    updateSlotPreview();
+  }
+
+  function getSlotFormState(){
+    return {
+      serviceId: parseInt($('#new-slot-service').value, 10) || null,
+      from: $('#new-slot-from').value,
+      to: $('#new-slot-to').value,
+      times: $('#new-slot-times').value.split(',').map(s => s.trim()).filter(Boolean),
+      maxSpots: parseInt($('#new-slot-max').value, 10) || null,
+      weekdays: Array.from($$('#weekday-pills .weekday-pill.active')).map(p => parseInt(p.dataset.wd, 10)),
+    };
+  }
+
+  function countSlotsToCreate(s){
+    if (!s.from || !s.to || !s.times.length || !s.weekdays.length) return 0;
+    const start = new Date(s.from + 'T12:00:00');
+    const end = new Date(s.to + 'T12:00:00');
+    if (end < start) return 0;
+    let daysMatched = 0;
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      if (s.weekdays.includes(d.getDay())) daysMatched++;
+    }
+    return daysMatched * s.times.length;
+  }
+
+  function updateSlotPreview(){
+    const s = getSlotFormState();
+    const preview = $('#slot-preview');
+    if (!s.weekdays.length) {
+      preview.className = 'slot-preview warn';
+      preview.innerHTML = '<strong>Välj minst en veckodag</strong>';
+      return;
+    }
+    if (!s.from || !s.to || !s.times.length) {
+      preview.className = 'slot-preview';
+      preview.textContent = 'Fyll i datum och tider — preview visas här.';
+      return;
+    }
+    const n = countSlotsToCreate(s);
+    if (n === 0) {
+      preview.className = 'slot-preview warn';
+      preview.textContent = 'Inga matchande datum i intervallet (kolla veckodagar och datum).';
+      return;
+    }
+    const daysMatched = n / s.times.length;
+    const validTimes = s.times.every(t => /^\d{1,2}:\d{2}$/.test(t));
+    preview.className = 'slot-preview';
+    preview.innerHTML = `Skapar <strong>${fmtInt(n)}</strong> tider · ${fmtInt(daysMatched)} dagar × ${s.times.length} tid(er) per dag` +
+      (!validTimes ? ' · <span style="color:var(--error)">ogiltigt tidsformat</span>' : '');
+  }
+
+  // Weekday pills
+  $$('#weekday-pills .weekday-pill').forEach(p => {
+    p.addEventListener('click', () => { p.classList.toggle('active'); updateSlotPreview(); });
+  });
+  // Weekday quick-buttons (vardagar / helger / alla)
+  $$('.weekday-quick').forEach(b => {
+    b.addEventListener('click', () => {
+      const q = b.dataset.quick;
+      const WEEKDAYS = ['1','2','3','4','5'], WEEKENDS = ['6','0'], ALL = ['0','1','2','3','4','5','6'];
+      const set = q === 'weekdays' ? WEEKDAYS : q === 'weekends' ? WEEKENDS : ALL;
+      $$('#weekday-pills .weekday-pill').forEach(p => p.classList.toggle('active', set.includes(p.dataset.wd)));
+      updateSlotPreview();
+    });
+  });
+  // Trigger preview recalc on any form change
+  ['new-slot-service','new-slot-from','new-slot-to','new-slot-times','new-slot-max']
+    .forEach(id => $('#' + id).addEventListener('input', updateSlotPreview));
+
+  // ── Templates (localStorage) ──
+  function loadTemplates(){
+    try { return JSON.parse(localStorage.getItem(TEMPLATE_KEY) || '{}'); } catch(_) { return {}; }
+  }
+  function saveTemplates(obj){ localStorage.setItem(TEMPLATE_KEY, JSON.stringify(obj)); }
+  function refreshTemplateDropdown(){
+    const templates = loadTemplates();
+    const sel = $('#slot-template-select');
+    const names = Object.keys(templates).sort();
+    sel.innerHTML = '<option value="">— Välj en sparad mall —</option>' +
+      names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    $('#delete-template-btn').style.display = 'none';
+  }
+  $('#slot-template-select').addEventListener('change', () => {
+    const name = $('#slot-template-select').value;
+    if (!name) { $('#delete-template-btn').style.display = 'none'; return; }
+    const t = loadTemplates()[name];
+    if (!t) return;
+    if (t.serviceId) $('#new-slot-service').value = t.serviceId;
+    if (t.times) $('#new-slot-times').value = t.times.join(', ');
+    if (t.maxSpots) $('#new-slot-max').value = t.maxSpots;
+    if (Array.isArray(t.weekdays)) {
+      const set = t.weekdays.map(String);
+      $$('#weekday-pills .weekday-pill').forEach(p => p.classList.toggle('active', set.includes(p.dataset.wd)));
+    }
+    // Datumintervall kopieras INTE från mallen — varje tillfälle har egna datum
+    $('#delete-template-btn').style.display = 'inline-flex';
+    updateSlotPreview();
+    toast(`Mall "${name}" laddad`, 'info');
+  });
+  $('#save-template-btn').addEventListener('click', () => {
+    const s = getSlotFormState();
+    if (!s.serviceId || !s.times.length || !s.maxSpots || !s.weekdays.length) {
+      toast('Fyll i tjänst, tider, max och veckodagar innan du sparar', 'error'); return;
+    }
+    const name = prompt('Namn på mallen (t.ex. "Sommarhelg")?');
+    if (!name) return;
+    const templates = loadTemplates();
+    templates[name.trim()] = { serviceId: s.serviceId, times: s.times, maxSpots: s.maxSpots, weekdays: s.weekdays };
+    saveTemplates(templates);
+    refreshTemplateDropdown();
+    $('#slot-template-select').value = name.trim();
+    $('#delete-template-btn').style.display = 'inline-flex';
+    toast(`Mall "${name.trim()}" sparad`, 'success');
+  });
+  $('#delete-template-btn').addEventListener('click', () => {
+    const name = $('#slot-template-select').value;
+    if (!name) return;
+    if (!confirm(`Ta bort mallen "${name}"?`)) return;
+    const templates = loadTemplates();
+    delete templates[name];
+    saveTemplates(templates);
+    refreshTemplateDropdown();
+    toast('Mall borttagen', 'info');
+  });
+
+  // ── Skapa tider ──
+  $('#create-slots-btn').addEventListener('click', async () => {
+    const s = getSlotFormState();
+    if (!s.serviceId || !s.from || !s.to || !s.times.length || !s.maxSpots) { toast('Fyll i alla fält', 'error'); return; }
+    if (!s.weekdays.length) { toast('Välj minst en veckodag', 'error'); return; }
+    if (!s.times.every(t => /^\d{1,2}:\d{2}$/.test(t))) { toast('Tider måste vara i formatet HH:MM', 'error'); return; }
+    const n = countSlotsToCreate(s);
+    if (n === 0) { toast('Inga matchande datum i intervallet', 'error'); return; }
+    if (!confirm(`Skapar ${n} tider. Fortsätt?`)) return;
+    const btn = $('#create-slots-btn');
+    btn.disabled = true; btn.textContent = 'Skapar…';
+    try {
+      await adminCall({
+        action: 'createBulkSlots',
+        service_id: s.serviceId, from: s.from, to: s.to, times: s.times,
+        max_spots: s.maxSpots, weekdays: s.weekdays,
+      });
+      toast(`${n} tider skapade`, 'success');
+      await loadSlots();
+      renderSlotCalendar();
+      renderSlotDay();
+    } catch(e) {
+      toast('Fel: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Skapa tider';
+    }
+  });
+
+  function renderSlotCalendar(){
+    const y = slotCalDate.getFullYear(), m = slotCalDate.getMonth();
+    $('#slot-cal-month').textContent = MONTHS_FULL[m].charAt(0).toUpperCase() + MONTHS_FULL[m].slice(1) + ' ' + y;
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const offset = (firstDay + 6) % 7;
+    const today = new Date(); today.setHours(0,0,0,0);
+    let html = DAYS.map(d => `<div class="sc-label">${d}</div>`).join('');
+    for (let i = 0; i < offset; i++) html += '<div class="sc-day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isPast = new Date(y, m, d) < today;
+      const hasSlots = allSlots.some(s => s.slot_date === ds);
+      const selected = slotCalSelected === ds;
+      html += `<div class="sc-day ${isPast ? 'past' : ''} ${hasSlots ? 'has-slots' : ''} ${selected ? 'selected' : ''}" data-date="${ds}">${d}</div>`;
+    }
+    $('#slot-calendar').innerHTML = html;
+    $$('#slot-calendar .sc-day:not(.empty)').forEach(el => {
+      el.addEventListener('click', () => {
+        slotCalSelected = el.dataset.date;
+        // Synka "Från datum" + "Till datum" till den valda dagen, så
+        // huvudformuläret är redo att skapa tider på exakt den dagen.
+        const fromInput = $('#new-slot-from');
+        const toInput = $('#new-slot-to');
+        if (fromInput) fromInput.value = el.dataset.date;
+        if (toInput) toInput.value = el.dataset.date;
+        if (typeof updateSlotPreview === 'function') updateSlotPreview();
+        renderSlotCalendar();
+        renderSlotDay();
+      });
+    });
+  }
+
+  // Tim-rutnät för snabb-skapa på vald dag. Bygger en lista av timmar 08-20
+  // (samt eventuella befintliga tider utanför intervallet) som klickbara
+  // pills. Befintliga slot-tider är markerade. Helena bockar i de timmar
+  // hon vill öppna upp för bokning, och får ett "Skapa markerade tider"-CTA.
+  let slotDayHoursPicked = new Set();
+
+  function renderSlotDayHourGrid(daySlots){
+    const hours = new Set();
+    for (let h = 8; h <= 20; h++) hours.add(String(h).padStart(2,'0') + ':00');
+    daySlots.forEach(s => hours.add(s.slot_time.substring(0,5)));
+    const sortedHours = [...hours].sort();
+    const existingHours = new Set(daySlots.map(s => s.slot_time.substring(0,5)));
+
+    // Rensa picks som hör till andra dagar
+    slotDayHoursPicked = new Set([...slotDayHoursPicked].filter(h => sortedHours.includes(h)));
+
+    const pills = sortedHours.map(hh => {
+      const exists = existingHours.has(hh);
+      const picked = slotDayHoursPicked.has(hh);
+      const classes = ['hour-pill'];
+      if (exists) classes.push('has-slot');
+      if (picked) classes.push('active');
+      const title = exists ? 'Redan en tidslucka — kan inte väljas igen' : 'Klicka för att skapa denna timme';
+      return `<button type="button" class="${classes.join(' ')}" data-hh="${hh}" ${exists ? 'disabled' : ''} title="${title}">${hh}</button>`;
+    }).join('');
+
+    const pickedCount = slotDayHoursPicked.size;
+    return `<div style="border:1px dashed var(--border-lt);border-radius:10px;padding:14px 14px 12px;margin-bottom:12px;background:var(--surface-2)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Snabb-skapa tider</div>
+        <div class="mb-hour-hint" style="margin:0">
+          <span class="swatch">Finns redan</span>
+        </div>
+      </div>
+      <div class="hour-grid" id="slot-day-hour-grid">${pills}</div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="slot-day-quick-create" ${pickedCount === 0 ? 'disabled' : ''} style="padding:7px 14px;font-size:12px">Skapa ${pickedCount || ''} markerade tim${pickedCount === 1 ? 'me' : 'mar'}</button>
+        <div style="font-size:11px;color:var(--text-muted)">Använder vald tjänst & max-platser från formuläret ovan</div>
+      </div>
+    </div>`;
+  }
+
+  function wireSlotDayHourGrid(){
+    const grid = $('#slot-day-hour-grid');
+    if (grid) {
+      grid.querySelectorAll('.hour-pill:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const hh = btn.dataset.hh;
+          if (slotDayHoursPicked.has(hh)) slotDayHoursPicked.delete(hh);
+          else slotDayHoursPicked.add(hh);
+          renderSlotDay();
+        });
+      });
+    }
+    const createBtn = $('#slot-day-quick-create');
+    if (createBtn) createBtn.addEventListener('click', slotDayQuickCreate);
+  }
+
+  async function slotDayQuickCreate(){
+    if (!slotCalSelected || slotDayHoursPicked.size === 0) return;
+    const serviceId = Number($('#new-slot-service').value);
+    const maxSpots = Number($('#new-slot-max').value);
+    if (!serviceId) { toast('Välj tjänst i formuläret ovan', 'error'); return; }
+    if (!maxSpots || maxSpots < 1) { toast('Sätt max-platser i formuläret ovan', 'error'); return; }
+
+    const btn = $('#slot-day-quick-create');
+    btn.disabled = true;
+    btn.textContent = 'Skapar…';
+    try {
+      const times = [...slotDayHoursPicked].sort();
+      await adminCall({
+        action: 'createBulkSlots',
+        service_id: serviceId,
+        from: slotCalSelected,
+        to: slotCalSelected,
+        times,
+        max_spots: maxSpots,
+        weekdays: [new Date(slotCalSelected + 'T12:00:00').getDay()],
+      });
+      toast(`${times.length} tider skapade på ${fmtDate(slotCalSelected, true)}`, 'success');
+      slotDayHoursPicked.clear();
+      await loadSlots();
+      renderSlotCalendar();
+      renderSlotDay();
+    } catch (e) {
+      toast('Fel: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Skapa markerade timmar';
+    }
+  }
+
+  function renderSlotDay(){
+    const el = $('#slot-day-list');
+    if (!slotCalSelected) { el.innerHTML = '<div class="empty">Välj ett datum i kalendern</div>'; return; }
+    $('#slot-day-label').textContent = fmtDate(slotCalSelected, true);
+    const daySlots = allSlots.filter(s => s.slot_date === slotCalSelected);
+
+    // Always show the quick-create hour grid; existing slots list below
+    const hourGridHtml = renderSlotDayHourGrid(daySlots);
+
+    if (!daySlots.length) {
+      el.innerHTML = hourGridHtml + '<div class="empty" style="padding:20px 16px">Inga tider denna dag ännu</div>';
+      wireSlotDayHourGrid();
+      return;
+    }
+
+    // Drop selections that no longer exist (e.g. after delete)
+    const dayIds = new Set(daySlots.map(s => s.id));
+    slotDaySelected = new Set([...slotDaySelected].filter(id => dayIds.has(id)));
+
+    const selectableSlots = daySlots.filter(s => !s.booked_spots);
+    const allSelectableMarked = selectableSlots.length > 0 && selectableSlots.every(s => slotDaySelected.has(s.id));
+    const dayWeekday = new Date(slotCalSelected + 'T12:00:00').getDay();
+    const dayName = DAYS_FULL[dayWeekday].toLowerCase();
+
+    el.innerHTML = hourGridHtml + `<div class="slot-day-toolbar">
+      <label class="slot-select-all">
+        <input type="checkbox" id="slot-day-select-all" ${allSelectableMarked ? 'checked' : ''} ${selectableSlots.length === 0 ? 'disabled' : ''}>
+        Markera alla utan bokningar
+      </label>
+      ${slotDaySelected.size > 0 ? `<button class="btn btn-danger" id="delete-selected-btn" style="padding:6px 12px;font-size:12px">Ta bort markerade (${slotDaySelected.size})</button>` : ''}
+      <button class="slot-day-copy-btn" id="copy-day-forward-btn">
+        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Kopiera denna dag framåt
+      </button>
+    </div>` + daySlots.map(s => {
+      const full = s.booked_spots >= s.max_spots;
+      const checked = slotDaySelected.has(s.id);
+      const hasBooking = s.booked_spots > 0;
+      return `<div class="schedule-item ${checked ? 'is-selected' : ''}" style="padding:10px 0">
+        <input type="checkbox" class="slot-row-check" data-slot-id="${s.id}" ${checked ? 'checked' : ''} ${hasBooking ? 'disabled title="Tiden har bokningar"' : ''}>
+        <div class="schedule-time">${s.slot_time.substring(0,5)}</div>
+        <div class="schedule-body">
+          <div class="schedule-name">${esc(s.services?.name || '')}</div>
+          <div class="schedule-meta">${s.booked_spots}/${s.max_spots} platser ${full ? '· Fullt' : ''}</div>
+        </div>
+        <button class="btn btn-ghost btn-icon" title="Ta bort" data-slot-id="${s.id}">
+          <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+
+    wireSlotDayHourGrid();
+
+    el.querySelectorAll('.slot-row-check').forEach(cb => cb.addEventListener('change', () => {
+      const id = parseInt(cb.dataset.slotId, 10);
+      if (cb.checked) slotDaySelected.add(id); else slotDaySelected.delete(id);
+      renderSlotDay();
+    }));
+
+    const selectAllCb = $('#slot-day-select-all');
+    if (selectAllCb) selectAllCb.addEventListener('change', e => {
+      if (e.target.checked) selectableSlots.forEach(s => slotDaySelected.add(s.id));
+      else selectableSlots.forEach(s => slotDaySelected.delete(s.id));
+      renderSlotDay();
+    });
+
+    const delSelBtn = $('#delete-selected-btn');
+    if (delSelBtn) delSelBtn.addEventListener('click', async () => {
+      const ids = [...slotDaySelected];
+      if (!ids.length) return;
+      if (!confirm(`Ta bort ${ids.length} markerade tider?`)) return;
+      delSelBtn.disabled = true;
+      try {
+        await adminCall({ action: 'deleteBulkSlots', ids });
+        slotDaySelected.clear();
+        toast(`${ids.length} tider borttagna`, 'success');
+        await loadSlots();
+        renderSlotCalendar();
+        renderSlotDay();
+      } catch(e) {
+        toast('Fel: ' + e.message, 'error');
+        delSelBtn.disabled = false;
+      }
+    });
+
+    el.querySelectorAll('button[data-slot-id]').forEach(b => b.addEventListener('click', async () => {
+      const id = parseInt(b.dataset.slotId, 10);
+      if (!confirm('Ta bort denna tid?')) return;
+      try {
+        await adminCall({ action: 'deleteBulkSlots', ids: [id] });
+        slotDaySelected.delete(id);
+        toast('Tid borttagen', 'success');
+        await loadSlots();
+        renderSlotCalendar();
+        renderSlotDay();
+      } catch(e) { toast('Fel: ' + e.message, 'error'); }
+    }));
+
+    // Kopiera hela dagens tider framåt X veckor — grupperar per service_id
+    const copyBtn = $('#copy-day-forward-btn');
+    if (copyBtn) copyBtn.addEventListener('click', async () => {
+      const input = prompt(`Kopiera denna ${dayName}s tider framåt — hur många veckor?`, '4');
+      if (!input) return;
+      const weeks = parseInt(input, 10);
+      if (!weeks || weeks < 1 || weeks > 52) { toast('Ange ett antal veckor 1–52', 'error'); return; }
+      // from = nästa förekomst av samma veckodag, to = +weeks veckor
+      const start = new Date(slotCalSelected + 'T12:00:00');
+      start.setDate(start.getDate() + 7);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7 * (weeks - 1));
+      const fromIso = isoDay(start), toIso = isoDay(end);
+
+      // Gruppera per (service_id, max_spots) så vi kan göra ett Edge-anrop per grupp
+      const groups = {};
+      daySlots.forEach(s => {
+        const key = `${s.service_id}:${s.max_spots}`;
+        (groups[key] = groups[key] || { service_id: s.service_id, max_spots: s.max_spots, times: [] }).times.push(s.slot_time.substring(0,5));
+      });
+      copyBtn.disabled = true; copyBtn.textContent = 'Kopierar…';
+      let total = 0;
+      try {
+        for (const key in groups) {
+          const g = groups[key];
+          await adminCall({
+            action: 'createBulkSlots',
+            service_id: g.service_id, from: fromIso, to: toIso, times: g.times,
+            max_spots: g.max_spots, weekdays: [dayWeekday],
+          });
+          total += g.times.length * weeks;
+        }
+        toast(`${total} tider skapade över ${weeks} ${weeks === 1 ? 'vecka' : 'veckor'}`, 'success');
+        await loadSlots();
+        renderSlotCalendar();
+        renderSlotDay();
+      } catch(e) {
+        toast('Fel: ' + e.message, 'error');
+      } finally {
+        copyBtn.disabled = false;
+      }
+    });
+  }
+
+  $('#slot-cal-prev').addEventListener('click', () => { slotCalDate.setMonth(slotCalDate.getMonth() - 1); renderSlotCalendar(); });
+  $('#slot-cal-next').addEventListener('click', () => { slotCalDate.setMonth(slotCalDate.getMonth() + 1); renderSlotCalendar(); });
+
+  $('#clear-all-slots-btn').addEventListener('click', async () => {
+    const todayStr = isoDay(new Date());
+    const future = allSlots.filter(s => s.slot_date >= todayStr);
+    const cleanable = future.filter(s => !s.booked_spots);
+    const blocked = future.length - cleanable.length;
+    if (!cleanable.length) {
+      toast(blocked ? `Inga tider kan rensas — ${blocked} har bokningar` : 'Inga framtida tider att rensa', 'info');
+      return;
+    }
+    let msg = `Rensa ${cleanable.length} framtida tider?`;
+    if (blocked) msg += `\n\n${blocked} tider med bokningar lämnas kvar.`;
+    msg += '\n\nDetta går inte att ångra.';
+    if (!confirm(msg)) return;
+    const btn = $('#clear-all-slots-btn');
+    btn.disabled = true;
+    try {
+      await adminCall({ action: 'deleteBulkSlots', ids: cleanable.map(s => s.id) });
+      slotDaySelected.clear();
+      toast(`${cleanable.length} tider rensade`, 'success');
+      await loadSlots();
+      renderSlotCalendar();
+      renderSlotDay();
+      renderOverview();
+    } catch(e) {
+      toast('Fel: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ── MANUELL BOKNING (modal) ────────────────────────────
+  // Helena lägger in bokningar som kommit utanför widgeten (telefon, mejl,
+  // walk-in). Stödjer både befintliga tidsluckor och egen tid; vid egen tid
+  // skapas en slot on-the-fly via admin Edge Function.
+  const mbState = {
+    mode: 'custom', // 'custom' | 'existing'
+    calDate: new Date(),
+    selectedDate: null, // YYYY-MM-DD
+    selectedTime: null, // HH:MM
+    priceManuallyEdited: false,
+  };
+
+  function mbOpen(){
+    // Reset state
+    mbState.mode = 'custom';
+    mbState.calDate = new Date();
+    mbState.selectedDate = null;
+    mbState.selectedTime = null;
+    mbState.priceManuallyEdited = false;
+
+    // Populera tjänster
+    const svcSel = $('#mb-service');
+    svcSel.innerHTML = services.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+
+    // Reset alla fält
+    $('#mb-first-name').value = '';
+    $('#mb-last-name').value = '';
+    $('#mb-email').value = '';
+    $('#mb-phone').value = '';
+    $('#mb-adults').value = '2';
+    $('#mb-children').value = '0';
+    $('#mb-alpacas').value = '0';
+    $('#mb-price').value = '';
+    $('#mb-note').value = '';
+    $('#mb-block').checked = false;
+    $('#mb-existing-slot').value = '';
+    $('#mb-time-summary').classList.remove('show');
+
+    mbSwitchMode('custom');
+    mbUpdateAlpacasVisibility();
+    mbAutoPrice();
+    mbRenderCalendar();
+    mbRenderHourGrid();
+    mbPopulateExistingSlots();
+
+    $('#mb-backdrop').classList.add('open');
+    setTimeout(() => $('#mb-first-name').focus(), 60);
+  }
+
+  function mbClose(){
+    $('#mb-backdrop').classList.remove('open');
+  }
+
+  function mbSwitchMode(mode){
+    mbState.mode = mode;
+    $$('.mb-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    $('#mb-panel-custom').classList.toggle('active', mode === 'custom');
+    $('#mb-panel-existing').classList.toggle('active', mode === 'existing');
+  }
+
+  function mbCurrentService(){
+    const id = Number($('#mb-service').value);
+    return services.find(s => s.id === id) || null;
+  }
+
+  function mbUpdateAlpacasVisibility(){
+    const svc = mbCurrentService();
+    // Alpackor reserveras bara för Alpackapromenad (servicen som har "promenad" i namnet)
+    const isWalk = svc && /promenad/i.test(svc.name);
+    $('#mb-alpacas-wrap').style.display = isWalk ? '' : 'none';
+    if (!isWalk) $('#mb-alpacas').value = '0';
+  }
+
+  function mbAutoPrice(){
+    if (mbState.priceManuallyEdited) return;
+    const svc = mbCurrentService();
+    if (!svc) return;
+    const adults = Number($('#mb-adults').value) || 0;
+    const children = Number($('#mb-children').value) || 0;
+    const total = adults * Number(svc.price || 0) + children * Number(svc.price_child || 0);
+    $('#mb-price').value = total;
+  }
+
+  function mbRenderCalendar(){
+    const y = mbState.calDate.getFullYear(), m = mbState.calDate.getMonth();
+    $('#mb-cal-month').textContent = MONTHS_FULL[m].charAt(0).toUpperCase() + MONTHS_FULL[m].slice(1) + ' ' + y;
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const offset = (firstDay + 6) % 7;
+    const today = new Date(); today.setHours(0,0,0,0);
+    let html = DAYS.map(d => `<div class="sc-label">${d}</div>`).join('');
+    for (let i = 0; i < offset; i++) html += '<div class="sc-day empty"></div>';
+    const svc = mbCurrentService();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isPast = new Date(y, m, d) < today;
+      const hasSlots = svc ? allSlots.some(s => s.slot_date === ds && s.service_id === svc.id) : false;
+      const selected = mbState.selectedDate === ds;
+      const classes = ['sc-day'];
+      if (isPast) classes.push('past');
+      if (hasSlots) classes.push('has-slots');
+      if (selected) classes.push('selected');
+      html += `<div class="${classes.join(' ')}" data-date="${ds}">${d}</div>`;
+    }
+    $('#mb-calendar').innerHTML = html;
+    $$('#mb-calendar .sc-day:not(.empty)').forEach(el => {
+      el.addEventListener('click', () => {
+        if (el.classList.contains('past')) return;
+        mbState.selectedDate = el.dataset.date;
+        mbState.selectedTime = null;
+        mbRenderCalendar();
+        mbRenderHourGrid();
+        mbUpdateTimeSummary();
+      });
+    });
+  }
+
+  function mbRenderHourGrid(){
+    const el = $('#mb-hour-grid');
+    if (!mbState.selectedDate) {
+      el.innerHTML = '<div class="empty" style="grid-column:1/-1;padding:18px 0">Välj ett datum i kalendern ovan</div>';
+      return;
+    }
+    const svc = mbCurrentService();
+    const daySlots = svc ? allSlots.filter(s => s.slot_date === mbState.selectedDate && s.service_id === svc.id) : [];
+    const slotsByHour = new Map();
+    daySlots.forEach(s => { slotsByHour.set(s.slot_time.substring(0,5), s); });
+
+    // Visa timmar 08-20 + eventuella befintliga slot-tider utanför det intervallet
+    const hours = new Set();
+    for (let h = 8; h <= 20; h++) hours.add(String(h).padStart(2,'0') + ':00');
+    slotsByHour.forEach((_, k) => hours.add(k));
+    const sortedHours = [...hours].sort();
+
+    el.innerHTML = sortedHours.map(hh => {
+      const hasSlot = slotsByHour.has(hh);
+      const active = mbState.selectedTime === hh;
+      const classes = ['hour-pill'];
+      if (hasSlot) classes.push('has-slot');
+      if (active) classes.push('active');
+      return `<button type="button" class="${classes.join(' ')}" data-hh="${hh}">${hh}</button>`;
+    }).join('');
+
+    el.querySelectorAll('.hour-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        mbState.selectedTime = btn.dataset.hh;
+        mbRenderHourGrid();
+        mbUpdateTimeSummary();
+      });
+    });
+  }
+
+  function mbUpdateTimeSummary(){
+    const el = $('#mb-time-summary');
+    if (!mbState.selectedDate || !mbState.selectedTime) { el.classList.remove('show'); return; }
+    const svc = mbCurrentService();
+    const slot = svc ? allSlots.find(s => s.slot_date === mbState.selectedDate && s.service_id === svc.id && s.slot_time.substring(0,5) === mbState.selectedTime) : null;
+    const dateLabel = fmtDate(mbState.selectedDate, true);
+    if (slot) {
+      const free = (slot.max_spots || 0) - (slot.booked_spots || 0);
+      el.textContent = `${dateLabel} kl. ${mbState.selectedTime} · befintlig tidslucka (${free} av ${slot.max_spots} platser lediga)`;
+    } else {
+      el.textContent = `${dateLabel} kl. ${mbState.selectedTime} · ny tidslucka skapas`;
+    }
+    el.classList.add('show');
+  }
+
+  function mbPopulateExistingSlots(){
+    const svc = mbCurrentService();
+    const sel = $('#mb-existing-slot');
+    const today = isoDay(new Date());
+    const future = allSlots
+      .filter(s => s.slot_date >= today)
+      .filter(s => !svc || s.service_id === svc.id)
+      .sort((a, b) => a.slot_date.localeCompare(b.slot_date) || a.slot_time.localeCompare(b.slot_time));
+    sel.innerHTML = '<option value="">— Välj en framtida tid —</option>' + future.map(s => {
+      const free = (s.max_spots || 0) - (s.booked_spots || 0);
+      const label = `${fmtDate(s.slot_date, true)} kl. ${s.slot_time.substring(0,5)} · ${s.services?.name || ''} (${free}/${s.max_spots} lediga)`;
+      return `<option value="${s.id}">${label}</option>`;
+    }).join('');
+  }
+
+  async function mbSubmit(){
+    const svc = mbCurrentService();
+    if (!svc) { toast('Välj en tjänst', 'error'); return; }
+    const firstName = $('#mb-first-name').value.trim();
+    if (!firstName) { toast('Förnamn krävs', 'error'); $('#mb-first-name').focus(); return; }
+    const adults = Number($('#mb-adults').value) || 0;
+    const children = Number($('#mb-children').value) || 0;
+    if (adults + children < 1) { toast('Minst en person krävs', 'error'); return; }
+
+    const payload = {
+      action: 'createManualBooking',
+      service_id: svc.id,
+      first_name: firstName,
+      last_name: $('#mb-last-name').value.trim(),
+      email: $('#mb-email').value.trim(),
+      phone: $('#mb-phone').value.trim(),
+      adults,
+      children,
+      alpacas: Number($('#mb-alpacas').value) || 0,
+      total_price: $('#mb-price').value === '' ? null : Number($('#mb-price').value),
+      note: $('#mb-note').value.trim() || null,
+      private_party: $('#mb-block').checked,
+    };
+
+    if (mbState.mode === 'custom') {
+      if (!mbState.selectedDate || !mbState.selectedTime) {
+        toast('Välj datum och tid', 'error'); return;
+      }
+      payload.slot_date = mbState.selectedDate;
+      payload.slot_time = mbState.selectedTime + ':00';
+    } else {
+      const slotId = Number($('#mb-existing-slot').value);
+      if (!slotId) { toast('Välj en befintlig tid', 'error'); return; }
+      payload.slot_id = slotId;
+    }
+
+    const submitBtn = $('#mb-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sparar…';
+    try {
+      const res = await adminCall(payload);
+      if (!res?.booking) throw new Error('Inget svar från servern');
+      toast('Bokning skapad', 'success');
+      mbClose();
+      await Promise.all([loadBookings(), loadSlots()]);
+      renderBookings();
+      renderOverview();
+      renderSlotCalendar();
+      renderSlotDay();
+    } catch (e) {
+      toast('Fel: ' + e.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Spara bokning';
+    }
+  }
+
+  // Wiring
+  $('#new-booking-btn').addEventListener('click', mbOpen);
+  $('#mb-close').addEventListener('click', mbClose);
+  $('#mb-cancel').addEventListener('click', mbClose);
+  $('#mb-backdrop').addEventListener('click', e => { if (e.target === $('#mb-backdrop')) mbClose(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('#mb-backdrop').classList.contains('open')) mbClose();
+  });
+  $$('.mb-tab').forEach(t => t.addEventListener('click', () => mbSwitchMode(t.dataset.mode)));
+  $('#mb-cal-prev').addEventListener('click', () => { mbState.calDate.setMonth(mbState.calDate.getMonth() - 1); mbRenderCalendar(); });
+  $('#mb-cal-next').addEventListener('click', () => { mbState.calDate.setMonth(mbState.calDate.getMonth() + 1); mbRenderCalendar(); });
+  $('#mb-service').addEventListener('change', () => {
+    mbUpdateAlpacasVisibility();
+    mbAutoPrice();
+    mbRenderCalendar();
+    mbRenderHourGrid();
+    mbUpdateTimeSummary();
+    mbPopulateExistingSlots();
+  });
+  ['mb-adults', 'mb-children'].forEach(id => {
+    $('#' + id).addEventListener('input', mbAutoPrice);
+  });
+  $('#mb-price').addEventListener('input', () => { mbState.priceManuallyEdited = true; });
+  $('#mb-recalc-price').addEventListener('click', () => { mbState.priceManuallyEdited = false; mbAutoPrice(); });
+  $('#mb-submit').addEventListener('click', mbSubmit);
+
+  // ── NAVIGATION ─────────────────────────────────────────
+  $$('.nav-item[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.view;
+      $$('.nav-item').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.view').forEach(x => x.classList.remove('active'));
+      $('#view-' + v).classList.add('active');
+      activeView = v;
+    });
+  });
+
+  // ── KÖR ────────────────────────────────────────────────
+  init();
+})();
+</script>
+</body>
+</html>
